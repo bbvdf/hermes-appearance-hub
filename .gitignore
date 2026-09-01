@@ -1,0 +1,5 @@
+.DS_Store
+.hermes/
+node_modules/
+__pycache__/
+*.pyc
