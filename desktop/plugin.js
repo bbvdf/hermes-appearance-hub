@@ -2278,8 +2278,8 @@ function AppearancePanel() {
 // ── 插件入口 ──────────────────────────────────────────────────────
 export default {
   id: ID,
-  name: 'Hermes Appearance Hub',
-  description: '外观整合面板：纸纹 + 霞鹜文楷字体 + 原生界面缩放，状态栏一键开关。',
+  name: '外观整合面板（Hermes Appearance Hub）',
+  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-20px)+思考块去灰/卡片+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
   defaultEnabled: true,
   register(ctx) {
     try {
