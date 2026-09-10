@@ -41,6 +41,7 @@ export const LOCALES = {
       thinking: 'Thinking content font (empty = default)',
       thinkColor: 'Thinking color (text + border)', thinkBox: 'Thinking block look',
       thinkBoxOff: 'No frame', thinkBoxBorder: 'Hairline card', thinkBoxRail: 'Left accent rail', thinkBoxTint: 'Tinted card',
+      tintStrength: 'Tint strength',
       reset: 'Reset to defaults',
       colorPrimary: 'Body color (brightest)', colorSecondary: 'Light gray', colorSystem: 'Original palette'
     },
@@ -98,6 +99,7 @@ export const LOCALES = {
       thinking: '思考内容字体（留空=默认）',
       thinkColor: '思考块颜色（文字和边框一起变）', thinkBox: '思考块外形',
       thinkBoxOff: '不要框', thinkBoxBorder: '细边框卡片', thinkBoxRail: '左边一条竖线', thinkBoxTint: '主题色淡底',
+      tintStrength: '底色浓度',
       reset: '重置为默认',
       colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色'
     },
@@ -155,6 +157,7 @@ export const LOCALES = {
       thinking: '思考內容字型（留空=預設）',
       thinkColor: '思考區塊顏色（文字與邊框一起變）', thinkBox: '思考區塊外形',
       thinkBoxOff: '不要框', thinkBoxBorder: '細邊框卡片', thinkBoxRail: '左邊一條豎線', thinkBoxTint: '主題色淡底',
+      tintStrength: '底色濃度',
       reset: '重設為預設',
       colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色'
     },
@@ -969,6 +972,7 @@ const FONT_THINKSIZE_KEY = 'font.thinkSize'
 const FONT_THINKCOLOR_KEY = 'font.thinkingColor'
 const FONT_THINKBOX_KEY = 'font.thinkBox'
 const FONT_TABSIZE_KEY = 'font.tabSize'
+const FONT_THINKTINT_KEY = 'font.thinkTint'
 const FONT_LEGACY_KEY = 'maple-ui-font-settings' // ui-beautify 旧键，仅迁移用
 
 const FONT_SIZES = ['12', '14', '16', '18', '20', '22']
@@ -982,6 +986,16 @@ const FONT_COLORS = [
 // 思考块卡片样式（四档；旧布尔值在 readFontSettings 里归一化）
 const THINK_BOX_STYLES = ['off', 'border', 'rail', 'tint']
 const THINK_BOX_DEFAULT = 'border'
+// 「底色浓度」滑杆：0 = 无底色，上限 24（再高就明显发蓝）。
+// 单一数字换成两个百分比：accent 给色相、base(≈0.45 倍) 给明暗——base 与背景永远对立，
+// 所以任何主题下都有可辨识的明暗差。标定：9 ≈ 浅色 #E0E8F7（Δ-31），12 ≈ #D7E1F5（Δ-40）。
+const THINK_TINT_MAX = 24
+const THINK_TINT_DEFAULT = 9
+const clampThinkTint = (v) => {
+  const n = Math.round(Number(v))
+  return Number.isFinite(n) ? Math.min(THINK_TINT_MAX, Math.max(0, n)) : THINK_TINT_DEFAULT
+}
+const thinkTintBase = (pct) => Math.max(0, Math.round(pct * 0.45))
 const FONT_DEFAULTS = {
   uiFont: 'LXGW WenKai',        // 默认霞鹜文楷（保留原插件观感）
   uisize: '',
@@ -993,6 +1007,7 @@ const FONT_DEFAULTS = {
   thinkSize: '12',
   thinkingColor: 'primary',
   thinkBox: THINK_BOX_DEFAULT,
+  thinkTint: THINK_TINT_DEFAULT,
   tabSize: '',
 }
 // 界面字体栈（无衬线）：先用户选择，回落常用界面字体
@@ -1026,6 +1041,7 @@ function readFontSettings() {
     thinkSize: pick(FONT_THINKSIZE_KEY, FONT_DEFAULTS.thinkSize, FONT_SIZES),
     thinkingColor: pick(FONT_THINKCOLOR_KEY, FONT_DEFAULTS.thinkingColor, FONT_COLORS.map((c) => c.id)),
     thinkBox: normalizeThinkBox(s.get(FONT_THINKBOX_KEY, FONT_DEFAULTS.thinkBox)),
+    thinkTint: clampThinkTint(s.get(FONT_THINKTINT_KEY, FONT_DEFAULTS.thinkTint)),
     tabSize: pick(FONT_TABSIZE_KEY, '', FONT_SIZES),
   }
 }
@@ -1084,6 +1100,9 @@ function ensureFontWebfont(uiFont, codeFont) {
     document.head.appendChild(link)
   }
 }
+
+// 滑杆节流：拖动中不入库，停手 350ms 落盘（模块级即可，面板是单例）
+let thinkTintTimer = null
 
 // 由当前设置生成全部字体 CSS（移植 ui-beautify renderCss，样式 id 用本插件专属）
 function renderFontCss(s) {
@@ -1148,7 +1167,10 @@ function renderFontCss(s) {
   // 底色浓度 9%/4%：nous 浅色下 ≈ #E0E8F7（Δ ≈ -31/-23/-8）、深色下 ≈ #1A2334。
   // 标定过程（实测反馈）：6%/3%（Δ-22）在白底 + 纸纹下看不见 → 12%/5%（Δ-40）偏浓 → 9%/4% 居中。
   // accent 给色相、base 给明暗——base 永远与背景对立，任何主题都有可辨识的明暗差。
-  const accentFill = 'color-mix(in srgb,var(--ui-accent) 9%,color-mix(in srgb,var(--ui-base) 4%,transparent))'
+  const tintPct = clampThinkTint(s.thinkTint)
+  const accentFill = tintPct <= 0
+    ? 'transparent'
+    : `color-mix(in srgb,var(--ui-accent) ${tintPct}%,color-mix(in srgb,var(--ui-base) ${thinkTintBase(tintPct)}%,transparent))`
   if (s.thinkBox === 'border') {
     think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)!important}`)
   } else if (s.thinkBox === 'rail') {
@@ -1165,8 +1187,9 @@ function renderFontCss(s) {
   return rules.join('\n')
 }
 
-function applyFont() {
-  const s = readFontSettings()
+function applyFont(override) {
+  // override：拖「底色浓度」滑杆时的即时预览（只重建样式，不写 storage）
+  const s = override ? { ...readFontSettings(), ...override } : readFontSettings()
   ensureFontWebfont(s.uiFont, s.codeFont)
   let style = document.getElementById(FONT_STYLE_ID)
   if (!style) {
@@ -1915,10 +1938,20 @@ function AppearancePanel() {
         textSize: FONT_TEXTSIZE_KEY, codeFont: FONT_CODEFONT_KEY, codeSize: FONT_CODESIZE_KEY,
         thinkingFont: FONT_THINKFONT_KEY, thinkSize: FONT_THINKSIZE_KEY,
         thinkingColor: FONT_THINKCOLOR_KEY, thinkBox: FONT_THINKBOX_KEY, tabSize: FONT_TABSIZE_KEY,
+        thinkTint: FONT_THINKTINT_KEY,
       }[k]
       if (key) ctxRef.storage.set(key, v)
     })
     if (font) applyFont()
+  }
+
+  // 「底色浓度」滑杆：拖动中即时预览（只重建样式、不入库），停手 350ms 才落盘
+  const previewThinkTint = (v) => {
+    const pct = clampThinkTint(v)
+    setFontSettingsState((prev) => ({ ...prev, thinkTint: pct }))
+    if (font) applyFont({ thinkTint: pct })
+    if (thinkTintTimer) clearTimeout(thinkTintTimer)
+    thinkTintTimer = setTimeout(() => ctxRef.storage.set(FONT_THINKTINT_KEY, clampThinkTint(pct)), 350)
   }
 
   const toggleFont = (next) => {
@@ -1943,6 +1976,7 @@ function AppearancePanel() {
         textSize: FONT_TEXTSIZE_KEY, codeFont: FONT_CODEFONT_KEY, codeSize: FONT_CODESIZE_KEY,
         thinkingFont: FONT_THINKFONT_KEY, thinkSize: FONT_THINKSIZE_KEY,
         thinkingColor: FONT_THINKCOLOR_KEY, thinkBox: FONT_THINKBOX_KEY, tabSize: FONT_TABSIZE_KEY,
+        thinkTint: FONT_THINKTINT_KEY,
       }[k]
       if (key) ctxRef.storage.set(key, v)
     })
@@ -2499,6 +2533,35 @@ function AppearancePanel() {
                     }),
                   ],
                 }),
+                (fontSettings.thinkBox === 'tint' || fontSettings.thinkBox === 'rail') &&
+                  jsxs('div', {
+                    className: 'flex flex-col gap-1',
+                    children: [
+                      jsxs('div', {
+                        className: 'flex items-center justify-between gap-2',
+                        children: [
+                          jsx('label', {
+                            className: 'text-xs font-medium text-(--ui-text-secondary)',
+                            children: t('font.tintStrength'),
+                          }),
+                          jsx('span', {
+                            className: 'shrink-0 text-xs tabular-nums text-(--ui-text-secondary)',
+                            children: String(fontSettings.thinkTint),
+                          }),
+                        ],
+                      }),
+                      jsx('input', {
+                        type: 'range',
+                        min: 0,
+                        max: THINK_TINT_MAX,
+                        step: 1,
+                        value: fontSettings.thinkTint,
+                        'aria-label': t('font.tintStrength'),
+                        className: 'w-full accent-(--ui-accent)',
+                        onChange: (e) => previewThinkTint(Number(e.target.value)),
+                      }),
+                    ],
+                  }),
                 jsx('button', {
                   type: 'button',
                   className:
@@ -3080,7 +3143,7 @@ function AppearancePanel() {
 export default {
   id: ID,
   name: '外观整合面板（Hermes Appearance Hub）',
-  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·完成提示音(14音效+自定义音频/1·3·6·9倍/响度归一化/接管静音内置音)·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-22px)+思考块外形四档(去灰/不要框/细边框/左竖线/主题色淡底)+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
+  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·完成提示音(14音效+自定义音频/1·3·6·9倍/响度归一化/接管静音内置音)·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-22px)+思考块外形四档(去灰/不要框/细边框/左竖线/主题色淡底·浓度滑杆可调)+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
   defaultEnabled: true,
   register(ctx) {
     try {
