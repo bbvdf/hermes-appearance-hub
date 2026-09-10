@@ -1127,7 +1127,11 @@ function renderFontCss(s) {
   //  ② 卡片样式四档（off/border/rail/tint）：描边色随颜色档；描边与底色一律用
   //     base(前景色)/accent 的 color-mix —— base 永远与背景对立，同一公式在
   //     浅色/深色下自动等效，不必写 :root.dark 分支。
-  const THINK = '[data-slot="aui_thinking-disclosure"]'
+  // 选择器必须带 [data-conversation-scaffold] 且 background 要 !important：
+  // app 的 styles.css:1947 给这个元素压了 `background: transparent !important`
+  // （「脚手架一律透明」），插件画底色会被静默吃掉 —— 表现是「边框有、底色没有」。
+  // 同为本源 + 都 !important 时比特异性：(0,2,0) > (0,1,0)，插件胜。
+  const THINK = '[data-slot="aui_thinking-disclosure"][data-conversation-scaffold]'
   const think = [
     `${THINK},${THINK} *{opacity:1!important}`,
   ]
@@ -1146,11 +1150,11 @@ function renderFontCss(s) {
   // accent 给色相、base 给明暗——base 永远与背景对立，任何主题都有可辨识的明暗差。
   const accentFill = 'color-mix(in srgb,var(--ui-accent) 12%,color-mix(in srgb,var(--ui-base) 5%,transparent))'
   if (s.thinkBox === 'border') {
-    think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)}`)
+    think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)!important}`)
   } else if (s.thinkBox === 'rail') {
-    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-base) 8%,transparent);border-left:3px solid color-mix(in srgb,var(--ui-accent) 70%,var(--ui-base));border-radius:8px;padding:6px 10px 8px 11px;background:${accentFill}}`)
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-base) 8%,transparent);border-left:3px solid color-mix(in srgb,var(--ui-accent) 70%,var(--ui-base));border-radius:8px;padding:6px 10px 8px 11px;background:${accentFill}!important}`)
   } else if (s.thinkBox === 'tint') {
-    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 34%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}}`)
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 34%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}!important}`)
   }
   think.push(
     `[data-slot="aui_thinking-body"]{font-style:italic;overscroll-behavior:auto!important;${
