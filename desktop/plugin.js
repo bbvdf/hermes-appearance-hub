@@ -1145,10 +1145,10 @@ function renderFontCss(s) {
     s.thinkingColor === 'primary' ? 'color-mix(in srgb,var(--ui-base) 20%,transparent)'
       : s.thinkingColor === 'secondary' ? 'color-mix(in srgb,var(--ui-base) 13%,transparent)'
         : 'var(--ui-stroke-secondary)'
-  // 底色浓度：6%/3% 在纯白主题下只差 ~20 级色阶，叠上纸纹后基本看不见（实测反馈），
-  // 提高到 12%/5%：nous 浅色下 ≈ #D7E1F5（Δ ≈ -40/-30/-10），深色下同步变亮。
+  // 底色浓度 9%/4%：nous 浅色下 ≈ #E0E8F7（Δ ≈ -31/-23/-8）、深色下 ≈ #1A2334。
+  // 标定过程（实测反馈）：6%/3%（Δ-22）在白底 + 纸纹下看不见 → 12%/5%（Δ-40）偏浓 → 9%/4% 居中。
   // accent 给色相、base 给明暗——base 永远与背景对立，任何主题都有可辨识的明暗差。
-  const accentFill = 'color-mix(in srgb,var(--ui-accent) 12%,color-mix(in srgb,var(--ui-base) 5%,transparent))'
+  const accentFill = 'color-mix(in srgb,var(--ui-accent) 9%,color-mix(in srgb,var(--ui-base) 4%,transparent))'
   if (s.thinkBox === 'border') {
     think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)!important}`)
   } else if (s.thinkBox === 'rail') {
