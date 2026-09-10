@@ -39,7 +39,8 @@ export const LOCALES = {
       ui: 'UI font (empty = default)', text: 'Chat body font (empty = follow UI)',
       tabSize: 'Tab strip size', code: 'Code font (empty = default mono)',
       thinking: 'Thinking content font (empty = default)',
-      thinkColor: 'Thinking color (de-gray)', thinkBox: 'Thinking block card style (border + bg)',
+      thinkColor: 'Thinking color (text + border)', thinkBox: 'Thinking block look',
+      thinkBoxOff: 'No frame', thinkBoxBorder: 'Hairline card', thinkBoxRail: 'Left accent rail', thinkBoxTint: 'Tinted card',
       reset: 'Reset to defaults',
       colorPrimary: 'Body color (brightest)', colorSecondary: 'Light gray', colorSystem: 'Original palette'
     },
@@ -95,7 +96,8 @@ export const LOCALES = {
       ui: '界面 UI 字体（留空=默认）', text: '聊天正文字体（留空=跟随UI）',
       tabSize: '标签栏字号', code: '代码块字体（留空=默认等宽）',
       thinking: '思考内容字体（留空=默认）',
-      thinkColor: '思考块颜色（去灰）', thinkBox: '思考块卡片样式（边框+底）',
+      thinkColor: '思考块颜色（文字和边框一起变）', thinkBox: '思考块外形',
+      thinkBoxOff: '不要框', thinkBoxBorder: '细边框卡片', thinkBoxRail: '左边一条竖线', thinkBoxTint: '主题色淡底',
       reset: '重置为默认',
       colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色'
     },
@@ -151,7 +153,8 @@ export const LOCALES = {
       ui: '介面 UI 字型（留空=預設）', text: '聊天正文字型（留空=跟隨UI）',
       tabSize: '分頁列字號', code: '程式碼字型（留空=預設等寬）',
       thinking: '思考內容字型（留空=預設）',
-      thinkColor: '思考區塊顏色（去灰）', thinkBox: '思考區塊卡片樣式（邊框+底）',
+      thinkColor: '思考區塊顏色（文字與邊框一起變）', thinkBox: '思考區塊外形',
+      thinkBoxOff: '不要框', thinkBoxBorder: '細邊框卡片', thinkBoxRail: '左邊一條豎線', thinkBoxTint: '主題色淡底',
       reset: '重設為預設',
       colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色'
     },
@@ -953,7 +956,7 @@ function removePaper() {
 // ── 字体（霞鹜文楷默认 + ui-beautify 字体/字号/思考块整合）────────────────
 // 原 hermes-font-wenkai 的规则保留为默认（界面=霞鹜文楷、代码=霞鹜文楷 Mono）；
 // 整合 ui-beautify（maple-ui-font 更名）：界面/正文/代码/思考四类字体自由选择 +
-// 字号档位（12-20px）+ 思考块去灰/卡片 + 标签栏字号。旧设置从
+// 字号档位（12-22px）+ 思考块去灰/外形四档 + 标签栏字号。旧设置从
 // maple-ui-font-settings 一次性迁移，之后以本插件 ctx.storage 为准。
 const FONT_UI_KEY = 'font.uiFont'
 const FONT_UISIZE_KEY = 'font.uisize'
@@ -968,7 +971,7 @@ const FONT_THINKBOX_KEY = 'font.thinkBox'
 const FONT_TABSIZE_KEY = 'font.tabSize'
 const FONT_LEGACY_KEY = 'maple-ui-font-settings' // ui-beautify 旧键，仅迁移用
 
-const FONT_SIZES = ['12', '14', '16', '18', '20']
+const FONT_SIZES = ['12', '14', '16', '18', '20', '22']
 // 比例取自 styles.css: tool=0.6875/0.8125, caption=0.75/0.8125, line=1.125/0.8125, captionLine=1/0.8125
 const FONT_RATIO = { tool: 0.85, caption: 0.92, line: 1.4, captionLine: 1.23 }
 const FONT_COLORS = [
@@ -976,6 +979,9 @@ const FONT_COLORS = [
   { id: 'secondary', labelKey: 'font.colorSecondary' }, // 亮灰
   { id: 'system', labelKey: 'font.colorSystem' },       // 原配色(还原默认)
 ]
+// 思考块卡片样式（四档；旧布尔值在 readFontSettings 里归一化）
+const THINK_BOX_STYLES = ['off', 'border', 'rail', 'tint']
+const THINK_BOX_DEFAULT = 'border'
 const FONT_DEFAULTS = {
   uiFont: 'LXGW WenKai',        // 默认霞鹜文楷（保留原插件观感）
   uisize: '',
@@ -986,7 +992,7 @@ const FONT_DEFAULTS = {
   thinkingFont: '',
   thinkSize: '12',
   thinkingColor: 'primary',
-  thinkBox: true,
+  thinkBox: THINK_BOX_DEFAULT,
   tabSize: '',
 }
 // 界面字体栈（无衬线）：先用户选择，回落常用界面字体
@@ -1019,9 +1025,16 @@ function readFontSettings() {
     thinkingFont: String(s.get(FONT_THINKFONT_KEY, FONT_DEFAULTS.thinkingFont)),
     thinkSize: pick(FONT_THINKSIZE_KEY, FONT_DEFAULTS.thinkSize, FONT_SIZES),
     thinkingColor: pick(FONT_THINKCOLOR_KEY, FONT_DEFAULTS.thinkingColor, FONT_COLORS.map((c) => c.id)),
-    thinkBox: !!s.get(FONT_THINKBOX_KEY, FONT_DEFAULTS.thinkBox),
+    thinkBox: normalizeThinkBox(s.get(FONT_THINKBOX_KEY, FONT_DEFAULTS.thinkBox)),
     tabSize: pick(FONT_TABSIZE_KEY, '', FONT_SIZES),
   }
+}
+
+// 思考块卡片样式归一化：兼容旧版布尔值（true=细描边卡片、false=关）
+function normalizeThinkBox(v) {
+  if (v === true) return 'border'
+  if (v === false) return 'off'
+  return THINK_BOX_STYLES.includes(v) ? v : THINK_BOX_DEFAULT
 }
 
 // 一次性迁移 ui-beautify（maple-ui-font-settings）旧设置
@@ -1111,19 +1124,30 @@ function renderFontCss(s) {
   //     → opacity 0.67(rest)/1(hover)，整块(标题行+正文)一起淡；
   //     标题行另用 --conversation-scaffold-text(64% base)灰字。
   //     对策：容器 opacity:1 无条件压死(hover 态规则随之失效)，颜色按档全后代覆盖。
-  //  ② thinkBox=卡片样式：细边框+柔背景+圆角，标题与正文都在框内。
+  //  ② 卡片样式四档（off/border/rail/tint）：描边色随颜色档；描边与底色一律用
+  //     base(前景色)/accent 的 color-mix —— base 永远与背景对立，同一公式在
+  //     浅色/深色下自动等效，不必写 :root.dark 分支。
+  const THINK = '[data-slot="aui_thinking-disclosure"]'
   const think = [
-    `[data-slot="aui_thinking-disclosure"],[data-slot="aui_thinking-disclosure"] *{opacity:1!important}`,
+    `${THINK},${THINK} *{opacity:1!important}`,
   ]
   if (s.thinkingColor === 'primary') {
-    think.push(`[data-slot="aui_thinking-disclosure"],[data-slot="aui_thinking-disclosure"] *{color:var(--ui-text-primary)!important}`)
+    think.push(`${THINK},${THINK} *{color:var(--ui-text-primary)!important}`)
   } else if (s.thinkingColor === 'secondary') {
-    think.push(`[data-slot="aui_thinking-disclosure"],[data-slot="aui_thinking-disclosure"] *{color:var(--ui-text-secondary)!important}`)
+    think.push(`${THINK},${THINK} *{color:var(--ui-text-secondary)!important}`)
   }
-  if (s.thinkBox) {
-    think.push(
-      `[data-slot="aui_thinking-disclosure"]{border:1px solid var(--ui-stroke-tertiary);border-radius:8px;padding:4px 10px 6px;background:color-mix(in srgb,var(--ui-bg-chrome) 55%,transparent)}`
-    )
+  // 描边跟所选颜色档走：正文色档最清晰，亮灰档次之，原配色档回落主题描边 token
+  const edge =
+    s.thinkingColor === 'primary' ? 'color-mix(in srgb,var(--ui-base) 20%,transparent)'
+      : s.thinkingColor === 'secondary' ? 'color-mix(in srgb,var(--ui-base) 13%,transparent)'
+        : 'var(--ui-stroke-secondary)'
+  const accentFill = 'color-mix(in srgb,var(--ui-accent) 6%,color-mix(in srgb,var(--ui-base) 3%,transparent))'
+  if (s.thinkBox === 'border') {
+    think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)}`)
+  } else if (s.thinkBox === 'rail') {
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-base) 8%,transparent);border-left:3px solid color-mix(in srgb,var(--ui-accent) 70%,var(--ui-base));border-radius:8px;padding:6px 10px 8px 11px;background:${accentFill}}`)
+  } else if (s.thinkBox === 'tint') {
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 30%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}}`)
   }
   think.push(
     `[data-slot="aui_thinking-body"]{font-style:italic;overscroll-behavior:auto!important;${
@@ -2449,16 +2473,23 @@ function AppearancePanel() {
                     }),
                   ],
                 }),
-                jsxs('label', {
-                  className: 'flex cursor-pointer items-center gap-1.5 text-xs text-(--ui-text-secondary)',
+                jsxs('div', {
+                  className: 'flex items-center justify-between gap-2',
                   children: [
-                    jsx('input', {
-                      type: 'checkbox',
-                      checked: !!fontSettings.thinkBox,
-                      onChange: (e) => setFontSettings({ thinkBox: e.target.checked }),
-                      className: 'accent-(--ui-accent)',
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkBox') }),
+                    jsx('select', {
+                      value: fontSettings.thinkBox,
+                      className:
+                        'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+                      onChange: (e) => setFontSettings({ thinkBox: e.target.value }),
+                      children: THINK_BOX_STYLES.map((id) =>
+                        jsx('option', {
+                          key: id,
+                          value: id,
+                          children: t('font.thinkBox' + id.charAt(0).toUpperCase() + id.slice(1)),
+                        })
+                      ),
                     }),
-                    t('font.thinkBox'),
                   ],
                 }),
                 jsx('button', {
@@ -3042,7 +3073,7 @@ function AppearancePanel() {
 export default {
   id: ID,
   name: '外观整合面板（Hermes Appearance Hub）',
-  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·完成提示音(14音效+自定义音频/1·3·6·9倍/响度归一化/接管静音内置音)·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-20px)+思考块去灰/卡片+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
+  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·完成提示音(14音效+自定义音频/1·3·6·9倍/响度归一化/接管静音内置音)·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-22px)+思考块外形四档(去灰/不要框/细边框/左竖线/主题色淡底)+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
   defaultEnabled: true,
   register(ctx) {
     try {
