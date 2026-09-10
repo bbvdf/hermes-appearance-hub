@@ -1141,13 +1141,16 @@ function renderFontCss(s) {
     s.thinkingColor === 'primary' ? 'color-mix(in srgb,var(--ui-base) 20%,transparent)'
       : s.thinkingColor === 'secondary' ? 'color-mix(in srgb,var(--ui-base) 13%,transparent)'
         : 'var(--ui-stroke-secondary)'
-  const accentFill = 'color-mix(in srgb,var(--ui-accent) 6%,color-mix(in srgb,var(--ui-base) 3%,transparent))'
+  // 底色浓度：6%/3% 在纯白主题下只差 ~20 级色阶，叠上纸纹后基本看不见（实测反馈），
+  // 提高到 12%/5%：nous 浅色下 ≈ #D7E1F5（Δ ≈ -40/-30/-10），深色下同步变亮。
+  // accent 给色相、base 给明暗——base 永远与背景对立，任何主题都有可辨识的明暗差。
+  const accentFill = 'color-mix(in srgb,var(--ui-accent) 12%,color-mix(in srgb,var(--ui-base) 5%,transparent))'
   if (s.thinkBox === 'border') {
     think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)}`)
   } else if (s.thinkBox === 'rail') {
     think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-base) 8%,transparent);border-left:3px solid color-mix(in srgb,var(--ui-accent) 70%,var(--ui-base));border-radius:8px;padding:6px 10px 8px 11px;background:${accentFill}}`)
   } else if (s.thinkBox === 'tint') {
-    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 30%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}}`)
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 34%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}}`)
   }
   think.push(
     `[data-slot="aui_thinking-body"]{font-style:italic;overscroll-behavior:auto!important;${
