@@ -68,6 +68,18 @@ export const LOCALES = {
     zoom: { title: 'UI Scale', desc: 'Native scaling · synced with Settings/View menu' },
     layout: { single: 'Single column', dual: 'Dual column' },
     footer: { tip: 'Changes apply instantly · persist across restarts' },
+    sound: {
+      title: 'Completion Sound', desc: 'A cue when a turn finishes · even loudness across presets · up to 9×',
+      on: 'On', off: 'Off',
+      preset: 'Sound', preview: 'Preview', volume: 'Volume',
+      source: 'Source', sourcePreset: 'Built-in', sourceCustom: 'My file',
+      pick: 'Choose file', clear: 'Remove', none: 'No audio file chosen yet',
+      takeover: 'Takeover', takeoverOff: 'Off', takeoverOn: 'On',
+      soundPickTitle: 'Choose a completion sound',
+      loadFailed: 'Could not read that audio (too large or unsupported):',
+      takeoverNote: 'On = mute Hermes\u2019 own cue. It also mutes the thinking sound, the wake chime and haptics; press Ctrl+R to reload the window for it to take effect.',
+      note: 'Presets are loudness-normalised, so switching them no longer changes volume. 9× is ~19 dB louder than Hermes\u2019 built-in cue, which still plays alongside; a takeover switch that mutes it comes next.'
+    },
     notify: { ready: 'Appearance Hub ready — paper texture, font and native zoom live in the "Appearance" toggle in the status bar', failed: 'Appearance Hub injection failed: ' }
   },
   zh: {
@@ -112,6 +124,18 @@ export const LOCALES = {
     zoom: { title: '界面缩放', desc: '原生缩放 · 与设置/View菜单同步' },
     layout: { single: '单栏', dual: '双栏' },
     footer: { tip: '修改即时生效 · 重启后保留' },
+    sound: {
+      title: '完成提示音', desc: 'AI 说完话时响一声 · 音效响度已统一 · 最大 9 倍',
+      on: '开', off: '关',
+      preset: '音效', preview: '试听', volume: '音量',
+      source: '音源', sourcePreset: '内置音效', sourceCustom: '自定义音频',
+      pick: '选择音频', clear: '移除', none: '还没选音频文件',
+      takeover: '接管', takeoverOff: '关', takeoverOn: '开',
+      soundPickTitle: '选择提示音音频',
+      loadFailed: '这个音频读不了(可能太大或格式不支持):',
+      takeoverNote: '开启 = 把 Hermes 自带的提示音静音。它会连带静掉思考音、唤醒音和触觉反馈;改完按 Ctrl+R 重载窗口才生效。',
+      note: '各音效响度已拉平,换音效不会再忽大忽小。9 倍比 Hermes 内置提示音响约 19 分贝;内置音仍会同时响,下一版会加「接管」开关把它静音。'
+    },
     notify: { ready: '外观 Hub 已就绪 — 纸纹、字体、原生缩放在状态栏「外观」开关', failed: '外观 Hub 注入失败: ' }
   },
   'zh-hant': {
@@ -156,6 +180,18 @@ export const LOCALES = {
     zoom: { title: '介面縮放', desc: '原生縮放 · 與設定/檢視選單同步' },
     layout: { single: '單欄', dual: '雙欄' },
     footer: { tip: '修改即時生效 · 重啟後保留' },
+    sound: {
+      title: '完成提示音', desc: 'AI 說完話時響一聲 · 音效響度已統一 · 最大 9 倍',
+      on: '開啟', off: '關閉',
+      preset: '音效', preview: '試聽', volume: '音量',
+      source: '音源', sourcePreset: '內建音效', sourceCustom: '自訂音訊',
+      pick: '選擇音訊', clear: '移除', none: '還沒選音訊檔',
+      takeover: '接管', takeoverOff: '關閉', takeoverOn: '開啟',
+      soundPickTitle: '選擇提示音音訊',
+      loadFailed: '這個音訊讀不了(可能過大或格式不支援):',
+      takeoverNote: '開啟 = 把 Hermes 內建的提示音靜音。它會連帶靜掉思考音、喚醒音與觸覺回饋;改完按 Ctrl+R 重載視窗才生效。',
+      note: '各音效響度已拉平,換音效不會再忽大忽小。9 倍比 Hermes 內建提示音響約 19 分貝;內建音仍會同時響,下一版會加「接管」開關把它靜音。'
+    },
     notify: { ready: '外觀 Hub 已就緒 — 紙紋、字型、原生縮放在狀態列「外觀」開關', failed: '外觀 Hub 注入失敗: ' }
   }
 }
@@ -241,6 +277,491 @@ const SLIDER_STYLE = {
   background: 'var(--ui-stroke-tertiary)',
   borderRadius: '9999px',
   accentColor: 'var(--dt-primary)'
+}
+
+// ── 完成提示音（sound）：移植 app 内置合成器 + 可调音量档位 ──────────────
+// 内置实现在 apps/desktop/src/lib/completion-sound.ts：Web Audio 即时合成，
+// 每个音的包络峰值只有 0.02~0.07，再乘 master 0.48、dry 0.88 —— 输出峰值约
+// -31 dBFS，比系统通知音小 20+ dB。这就是「提示音声音小」的根因：它是刻意做
+// 成氛围级的轻声，而不是通知音；app 内部也没有音量项。
+// 插件带同一套合成器，唯一区别是 master 增益可调（0.5×~4×，1× = 内置原响度）。
+const SOUND_KEY = 'sound.enabled'            // 由本插件播放完成提示音
+const SOUND_VARIANT_KEY = 'sound.variantId'  // 选中的内置音效（1-14）
+const SOUND_VOLUME_KEY = 'sound.volumeStep'  // 音量档位索引
+const SOUND_BASE_GAIN = 0.48                 // 与内置 master.gain 对齐
+const SOUND_VOLUME_STEPS = [1, 3, 6, 9]
+const SOUND_VOLUME_OPTIONS = [
+  { id: '0', label: '1×' },
+  { id: '1', label: '3×' },
+  { id: '2', label: '6×' },
+  { id: '3', label: '9×' }
+]
+const SOUND_DEFAULT_STEP = 2 // 默认 6×（档位索引 2）：内置原响度就是用户说的「小」
+const SOUND_BTN_CLASS =
+  'flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-(--ui-stroke-secondary) px-2 text-[0.625rem] hover:bg-(--chrome-action-hover)'
+const SOUND_BTN_STYLE = { color: 'var(--ui-text-secondary)' }
+const SOUND_SELECT_STYLE = {
+  background: 'var(--ui-bg-elevated)',
+  border: '1px solid var(--ui-stroke-secondary)',
+  color: 'var(--ui-text-primary)'
+}
+
+// 音高（十二平均律），与内置同一组常数
+const SOUND_NOTES = {
+  A2: 110, A3: 220, A4: 440, A5: 880, B5: 987.77, C3: 130.81, C4: 261.63,
+  E4: 329.63, E5: 659.25, E6: 1318.51, G4: 392, G5: 783.99, C5: 523.25, C6: 1046.5
+}
+
+// 包络振荡器：线性起音 + 指数衰减（避免归零时的咔哒声）
+function cueVoice(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const peak = spec.gain ?? 0.5
+  const attack = spec.attack ?? 0.006
+  const end = start + spec.dur
+  osc.type = spec.type ?? 'sine'
+  osc.frequency.setValueAtTime(spec.freq, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+// 软拨弦：三角波短促击弦 + 上滑音
+function cuePluck(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const attack = spec.attack ?? 0.004
+  const glide = spec.glide ?? 0.16
+  const end = start + spec.decay
+  osc.type = 'triangle'
+  osc.frequency.setValueAtTime(spec.freqFrom, start)
+  osc.frequency.exponentialRampToValueAtTime(spec.freqTo, start + glide)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+// 慢起泛音绽放
+function cueBloom(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const hold = spec.hold ?? 0.08
+  const end = start + spec.attack + hold + spec.decay
+  osc.type = spec.type ?? 'sine'
+  osc.frequency.setValueAtTime(spec.freq, start)
+  if (spec.freqTo) osc.frequency.exponentialRampToValueAtTime(spec.freqTo, start + spec.attack + hold * 0.6)
+  osc.detune.setValueAtTime(spec.detune ?? 0, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + spec.attack)
+  env.gain.setValueAtTime(Math.max(spec.gain, 0.0002), start + spec.attack + hold)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+function cueNoiseSource(ac, seconds) {
+  const length = Math.floor(ac.sampleRate * seconds)
+  const buffer = ac.createBuffer(1, length, ac.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1
+  const source = ac.createBufferSource()
+  source.buffer = buffer
+  return source
+}
+
+// 带通噪声：一缕「空气感」
+function cueAirPuff(ac, master, t0, spec) {
+  const source = cueNoiseSource(ac, 0.12)
+  const filter = ac.createBiquadFilter()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const end = start + spec.decay
+  filter.type = 'bandpass'
+  filter.frequency.setValueAtTime(spec.freq, start)
+  filter.Q.setValueAtTime(spec.q ?? 1.2, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + 0.018)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  source.connect(filter)
+  filter.connect(env)
+  env.connect(master)
+  source.start(start)
+  source.stop(end + 0.02)
+}
+
+// 噪声扫频：轻快的「咻」声
+function cueWhoosh(ac, master, t0, spec) {
+  const source = cueNoiseSource(ac, 0.4)
+  const filter = ac.createBiquadFilter()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const end = start + spec.decay
+  filter.type = 'bandpass'
+  filter.frequency.setValueAtTime(spec.freqFrom, start)
+  filter.frequency.exponentialRampToValueAtTime(spec.freqTo, end)
+  filter.Q.setValueAtTime(spec.q ?? 0.8, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + 0.03)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  source.connect(filter)
+  filter.connect(env)
+  env.connect(master)
+  source.start(start)
+  source.stop(end + 0.02)
+}
+
+// 音高滑扫：调制解调器 / 科幻音
+function cueSweep(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const attack = spec.attack ?? 0.003
+  const end = start + spec.decay
+  osc.type = spec.type ?? 'triangle'
+  osc.frequency.setValueAtTime(spec.freqFrom, start)
+  osc.frequency.exponentialRampToValueAtTime(spec.freqTo, end - 0.02)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+let cueReverbImpulse = null
+
+// 一点点混响湿声，让音色待在房间里而不是铁罐里（脉冲响应生成一次并缓存）
+function cueReverb(ac) {
+  if (!cueReverbImpulse) {
+    const seconds = 1.6
+    const length = Math.floor(ac.sampleRate * seconds)
+    cueReverbImpulse = ac.createBuffer(2, length, ac.sampleRate)
+    for (let channel = 0; channel < 2; channel += 1) {
+      const data = cueReverbImpulse.getChannelData(channel)
+      for (let i = 0; i < length; i += 1) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 2.6
+      }
+    }
+  }
+  const convolver = ac.createConvolver()
+  convolver.buffer = cueReverbImpulse
+  return convolver
+}
+
+// 14 个内置音效（与 Hermes 设置里的同名同配方，逐个移植）
+const SOUND_VARIANTS = [
+  {
+    id: 1,
+    name: 'Two-note comfort',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.E4, dur: 0.22, gain: 0.05, attack: 0.03, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.08, { freq: SOUND_NOTES.C4, dur: 0.52, gain: 0.07, attack: 0.08, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.08, { freq: SOUND_NOTES.C3, dur: 0.46, gain: 0.02, attack: 0.1, type: 'sine' })
+    }
+  },
+  {
+    id: 2,
+    name: 'Glass ping',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C6, dur: 0.55, gain: 0.032, attack: 0.002, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.01, { freq: SOUND_NOTES.E5, dur: 0.42, gain: 0.018, attack: 0.004, type: 'sine' })
+      cueAirPuff(ac, master, t0, { freq: 3200, gain: 0.004, decay: 0.1, q: 1.4 })
+    }
+  },
+  {
+    id: 3,
+    name: 'Soft marimba',
+    play: (ac, master, t0) => {
+      cuePluck(ac, master, t0, { freqFrom: SOUND_NOTES.E5, freqTo: SOUND_NOTES.G5, gain: 0.03, decay: 0.14, glide: 0.08 })
+      cueBloom(ac, master, t0 + 0.04, { freq: SOUND_NOTES.C5, gain: 0.028, attack: 0.08, hold: 0.04, decay: 0.62 })
+      cueBloom(ac, master, t0 + 0.06, { freq: SOUND_NOTES.G4, gain: 0.014, attack: 0.12, hold: 0.06, decay: 0.55 })
+    }
+  },
+  {
+    id: 4,
+    name: 'Tri-tone message',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C6, dur: 0.14, gain: 0.045, attack: 0.004, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.1, { freq: SOUND_NOTES.A5, dur: 0.16, gain: 0.04, attack: 0.004, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.2, { freq: SOUND_NOTES.G5, dur: 0.22, gain: 0.035, attack: 0.006, type: 'sine' })
+    }
+  },
+  {
+    id: 5,
+    name: 'Airy whoosh',
+    play: (ac, master, t0) => {
+      cueWhoosh(ac, master, t0, { freqFrom: 4200, freqTo: 900, gain: 0.022, decay: 0.28, q: 0.7 })
+      cueVoice(ac, master, t0 + 0.12, { freq: SOUND_NOTES.A5, dur: 0.35, gain: 0.02, attack: 0.02, type: 'sine' })
+    }
+  },
+  {
+    id: 6,
+    name: 'Discovery cluster',
+    play: (ac, master, t0) => {
+      const clusterDetunes = [-14, -5, 0, 7, 12]
+      clusterDetunes.forEach((detune, i) => {
+        cueBloom(ac, master, t0 + i * 0.03, {
+          freq: SOUND_NOTES.A3, gain: 0.012, attack: 0.38, hold: 0.12, decay: 1.05, detune
+        })
+      })
+      cueBloom(ac, master, t0 + 0.1, { freq: SOUND_NOTES.E4, gain: 0.008, attack: 0.45, hold: 0.08, decay: 0.9, detune: 3 })
+    }
+  },
+  {
+    id: 7,
+    name: 'Systems online',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C5, dur: 0.16, gain: 0.04, attack: 0.006, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.09, { freq: SOUND_NOTES.G5, dur: 0.28, gain: 0.042, attack: 0.008, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.09, { freq: SOUND_NOTES.C4, dur: 0.24, gain: 0.012, attack: 0.01, type: 'sine' })
+    }
+  },
+  {
+    id: 8,
+    name: 'IBM terminal',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.B5, dur: 0.12, gain: 0.038, attack: 0.002, type: 'square' })
+      cueVoice(ac, master, t0 + 0.14, { freq: SOUND_NOTES.E5, dur: 0.1, gain: 0.028, attack: 0.002, type: 'square' })
+    }
+  },
+  {
+    id: 9,
+    name: 'Modem chirp',
+    play: (ac, master, t0) => {
+      cueSweep(ac, master, t0, { freqFrom: 320, freqTo: 2200, gain: 0.024, decay: 0.16, type: 'triangle' })
+      cueSweep(ac, master, t0 + 0.1, { freqFrom: 480, freqTo: 1400, gain: 0.014, decay: 0.12, type: 'sine' })
+    }
+  },
+  {
+    id: 10,
+    name: 'Wind chimes',
+    play: (ac, master, t0) => {
+      const chimes = [SOUND_NOTES.G5, SOUND_NOTES.C6, SOUND_NOTES.E5, SOUND_NOTES.A5]
+      chimes.forEach((frequency, i) => {
+        cueVoice(ac, master, t0 + i * 0.13, {
+          freq: frequency, dur: 0.72, gain: 0.028 - i * 0.003, attack: 0.003, type: 'sine'
+        })
+      })
+    }
+  },
+  {
+    id: 11,
+    name: 'Singing bowl',
+    play: (ac, master, t0) => {
+      cueBloom(ac, master, t0, { freq: SOUND_NOTES.A3, gain: 0.022, attack: 0.58, hold: 0.16, decay: 1.35 })
+      cueBloom(ac, master, t0 + 0.08, { freq: SOUND_NOTES.E4, gain: 0.01, attack: 0.62, hold: 0.12, decay: 1.2, detune: 4 })
+      cueBloom(ac, master, t0 + 0.14, { freq: SOUND_NOTES.A4, gain: 0.006, attack: 0.68, hold: 0.08, decay: 1.05, detune: -3 })
+    }
+  },
+  {
+    id: 12,
+    name: 'Harp lift',
+    play: (ac, master, t0) => {
+      const notes = [SOUND_NOTES.C5, SOUND_NOTES.E5, SOUND_NOTES.G5, SOUND_NOTES.C6]
+      notes.forEach((frequency, i) => {
+        cueVoice(ac, master, t0 + i * 0.075, {
+          freq: frequency, dur: 0.38, gain: 0.034 - i * 0.004, attack: 0.012, type: 'sine'
+        })
+      })
+      cueBloom(ac, master, t0 + 0.2, { freq: SOUND_NOTES.C4, gain: 0.01, attack: 0.18, hold: 0.06, decay: 0.7 })
+    }
+  },
+  {
+    id: 13,
+    name: 'Sonar ping',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.A2, dur: 0.95, gain: 0.036, attack: 0.008, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.42, { freq: SOUND_NOTES.A3, dur: 0.55, gain: 0.014, attack: 0.01, type: 'sine' })
+      cueAirPuff(ac, master, t0, { freq: 600, gain: 0.005, decay: 0.2, q: 0.5 })
+    }
+  },
+  {
+    id: 14,
+    name: 'Music box',
+    play: (ac, master, t0) => {
+      const notes = [SOUND_NOTES.E6, SOUND_NOTES.C6, SOUND_NOTES.G5, SOUND_NOTES.E5]
+      notes.forEach((frequency, i) => {
+        cuePluck(ac, master, t0 + i * 0.09, {
+          freqFrom: frequency, freqTo: frequency * 0.998, gain: 0.02 - i * 0.002, decay: 0.2, glide: 0.06
+        })
+      })
+    }
+  }
+]
+
+// ── 响度归一化 ────────────────────────────────────────────────────────
+// 上面 14 个音效是照抄内置的原始配方，而它们的重叠峰值差异高达 17 dB
+// （最响 Two-note comfort 0.140，最轻 Airy whoosh 0.020）——所以同一档位下
+// 换音效会明显忽大忽小。下表是每个音效「同时发声的包络峰值之和」的最大值
+// （离线扫描所得，扫描脚本见插件仓库的 verification 说明），用它把每个音效
+// 提到最响音效的水平：换音效响度一致，且 9 倍档仍是同一绝对响度。
+const SOUND_RAW_PEAKS = {
+  1: 0.14, 2: 0.05, 3: 0.072, 4: 0.085, 5: 0.02, 6: 0.068, 7: 0.094,
+  8: 0.038, 9: 0.038, 10: 0.094, 11: 0.038, 12: 0.122, 13: 0.05, 14: 0.054
+}
+const SOUND_REFERENCE_PEAK = 0.14 // 最响音效（Two-note comfort）作为统一基准
+
+function soundNormGain(id) {
+  const peak = SOUND_RAW_PEAKS[id]
+  return peak && peak > 0 ? SOUND_REFERENCE_PEAK / peak : 1
+}
+
+// ── 音源：内置预设 / 自定义音频文件；以及「接管」内置音 ────────────────
+const SOUND_SOURCE_KEY = 'sound.source'          // 'preset' | 'custom'
+const SOUND_CUSTOM_PATH_KEY = 'sound.customPath'
+const SOUND_CUSTOM_NAME_KEY = 'sound.customName'
+const SOUND_TAKEOVER_KEY = 'sound.takeover'
+// app 的全局静音键（src/store/haptics.ts）：内置完成音、思考音、唤醒音、触觉反馈都看它。
+// 那个 atom 只在 app 启动时读一次 → 写完键必须重载窗口（Ctrl+R）才生效，面板要如实说明。
+const NATIVE_MUTE_KEY = 'hermes.desktop.hapticsMuted'
+
+function nativeSoundMuted() {
+  try {
+    return localStorage.getItem(NATIVE_MUTE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function writeNativeSoundMuted(on) {
+  try {
+    localStorage.setItem(NATIVE_MUTE_KEY, on ? 'true' : 'false')
+  } catch {}
+}
+
+let customBuffer = null
+let customLoadedPath = null
+let customPeak = 1
+
+// 读本地音频（桥的 data URL，默认上限 16 MiB）→ 解码 → 扫峰值。
+// 峰值用于归一化：自定义文件和内置预设走同一个基准（SOUND_REFERENCE_PEAK），
+// 所以同一档位下响度对得上，换文件不会突然炸耳或细如蚊呐。
+async function loadCustomSound(path) {
+  const desktop = window.hermesDesktop
+  if (!desktop || typeof desktop.readFileDataUrl !== 'function') {
+    throw new Error('desktop bridge unavailable')
+  }
+  const dataUrl = await desktop.readFileDataUrl(path)
+  const comma = String(dataUrl).indexOf(',')
+  const base64 = comma >= 0 ? String(dataUrl).slice(comma + 1) : String(dataUrl)
+  const bin = atob(base64)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i)
+  const ac = cueAudioContext()
+  if (!ac) throw new Error('no audio context')
+  const buffer = await ac.decodeAudioData(bytes.buffer)
+  let peak = 0
+  for (let c = 0; c < buffer.numberOfChannels; c += 1) {
+    const data = buffer.getChannelData(c)
+    for (let i = 0; i < data.length; i += 1) {
+      const v = data[i] < 0 ? -data[i] : data[i]
+      if (v > peak) peak = v
+    }
+  }
+  customBuffer = buffer
+  customPeak = peak > 0.0001 ? peak : 1
+  customLoadedPath = path
+  return buffer
+}
+
+function playCustomCue(step) {
+  const ac = cueAudioContext()
+  if (!ac || !customBuffer) return false
+  const source = ac.createBufferSource()
+  source.buffer = customBuffer
+  const gain = ac.createGain()
+  gain.gain.setValueAtTime(
+    SOUND_BASE_GAIN * SOUND_VOLUME_STEPS[resolveSoundStep(step)] * (SOUND_REFERENCE_PEAK / customPeak),
+    ac.currentTime
+  )
+  source.connect(gain)
+  gain.connect(ac.destination)
+  source.start()
+  return true
+}
+
+function customFileName(path) {
+  return String(path || '').split(/[\\/]/).pop() || ''
+}
+
+// 播放完成音：自定义优先，读不到就回退内置预设（绝不让用户静默丢音）
+async function playCompletionCue() {
+  if (!ctxRef || !ctxRef.storage.get(SOUND_KEY, false)) return
+  const step = ctxRef.storage.get(SOUND_VOLUME_KEY, SOUND_DEFAULT_STEP)
+  if (ctxRef.storage.get(SOUND_SOURCE_KEY, 'preset') === 'custom') {
+    const path = ctxRef.storage.get(SOUND_CUSTOM_PATH_KEY, '')
+    if (path) {
+      try {
+        if (!customBuffer || customLoadedPath !== path) await loadCustomSound(path)
+        if (playCustomCue(step)) return
+      } catch {}
+    }
+  }
+  playCue(ctxRef.storage.get(SOUND_VARIANT_KEY, 1), step)
+}
+
+function resolveSoundVariant(id) {
+  const v = Number(id)
+  return SOUND_VARIANTS.some((s) => s.id === v) ? v : 1
+}
+
+function resolveSoundStep(i) {
+  const v = Number(i)
+  return Number.isInteger(v) && v >= 0 && v < SOUND_VOLUME_STEPS.length ? v : SOUND_DEFAULT_STEP
+}
+
+// 播放链路与内置一致（voices → master → 低通 → dry + 混响湿声 → 输出），
+// 只有 master 增益换成「内置基准 × 档位」，所以 1× 与内置同响、4× 明显更响。
+let cueCtx = null
+
+function cueAudioContext() {
+  try {
+    if (!cueCtx) cueCtx = new (window.AudioContext || window.webkitAudioContext)()
+  } catch {
+    return null
+  }
+  if (cueCtx.state === 'suspended') cueCtx.resume().catch(() => {})
+  return cueCtx
+}
+
+function playCue(variantId, step) {
+  const ac = cueAudioContext()
+  if (!ac) return
+  const variant = SOUND_VARIANTS.find((s) => s.id === resolveSoundVariant(variantId))
+  if (!variant) return
+  const gainScale = SOUND_BASE_GAIN * SOUND_VOLUME_STEPS[resolveSoundStep(step)] * soundNormGain(variant.id)
+  const master = ac.createGain()
+  const tone = ac.createBiquadFilter()
+  tone.type = 'lowpass'
+  tone.frequency.setValueAtTime(3800, ac.currentTime)
+  tone.Q.setValueAtTime(0.32, ac.currentTime)
+  master.gain.setValueAtTime(gainScale, ac.currentTime)
+  master.connect(tone)
+  const dry = ac.createGain()
+  dry.gain.setValueAtTime(0.88, ac.currentTime)
+  tone.connect(dry)
+  dry.connect(ac.destination)
+  const reverb = cueReverb(ac)
+  const wet = ac.createGain()
+  wet.gain.setValueAtTime(0.34, ac.currentTime)
+  tone.connect(reverb)
+  reverb.connect(wet)
+  wet.connect(ac.destination)
+  variant.play(ac, master, ac.currentTime + 0.01)
 }
 
 // 嵌套行：左标签定宽(内联样式，宿主CSS不编译插件的tailwind类) + 右控件吃满。
@@ -1397,6 +1918,101 @@ function AppearancePanel() {
     if (font) applyFont()
     haptic('tap')
   }
+  // 完成提示音（P1：内置预设 + 音量档位 + 试听；自定义文件与「接管静音内置音」见后续阶段）
+  const [soundOn, setSoundOn] = useState(() => ctxRef.storage.get(SOUND_KEY, false))
+  const [soundVariant, setSoundVariantState] = useState(() =>
+    resolveSoundVariant(ctxRef.storage.get(SOUND_VARIANT_KEY, 1)))
+  const [soundStep, setSoundStepState] = useState(() =>
+    resolveSoundStep(ctxRef.storage.get(SOUND_VOLUME_KEY, SOUND_DEFAULT_STEP)))
+  const [soundSource, setSoundSourceState] = useState(() =>
+    ctxRef.storage.get(SOUND_SOURCE_KEY, 'preset') === 'custom' ? 'custom' : 'preset')
+  const [customName, setCustomNameState] = useState(() => ctxRef.storage.get(SOUND_CUSTOM_NAME_KEY, ''))
+  const [takeover, setTakeoverState] = useState(() => ctxRef.storage.get(SOUND_TAKEOVER_KEY, false))
+  const toggleSound = (next) => {
+    setSoundOn(next)
+    ctxRef.storage.set(SOUND_KEY, next)
+    haptic('tap')
+  }
+  // 换音效即试听（与 Hermes 设置里的交互一致）
+  const setSoundVariant = (id) => {
+    const v = resolveSoundVariant(id)
+    setSoundVariantState(v)
+    ctxRef.storage.set(SOUND_VARIANT_KEY, v)
+    playCue(v, soundStep)
+  }
+  const setSoundStep = (id) => {
+    const s = resolveSoundStep(id)
+    setSoundStepState(s)
+    ctxRef.storage.set(SOUND_VOLUME_KEY, s)
+    previewSound()
+    haptic('tap')
+  }
+  const setSoundSource = (id) => {
+    const v = id === 'custom' ? 'custom' : 'preset'
+    setSoundSourceState(v)
+    ctxRef.storage.set(SOUND_SOURCE_KEY, v)
+    haptic('tap')
+  }
+  // 试听：自定义文件按需解码（首次读盘 + 扫峰值），失败走 toast 提示
+  const previewSound = () => {
+    if (soundSource !== 'custom') {
+      playCue(soundVariant, soundStep)
+      return
+    }
+    const path = ctxRef.storage.get(SOUND_CUSTOM_PATH_KEY, '')
+    if (!path) {
+      host.notify({ kind: 'info', message: t('sound.none') })
+      return
+    }
+    loadCustomSound(path)
+      .then(() => playCustomCue(soundStep))
+      .catch((e) => host.notify({ kind: 'error', message: t('sound.loadFailed') + ' ' + (e && e.message) }))
+  }
+  const pickCustomSound = async () => {
+    try {
+      const desktop = window.hermesDesktop
+      if (!desktop || typeof desktop.selectPaths !== 'function') {
+        throw new Error('desktop bridge unavailable')
+      }
+      const picked = await desktop.selectPaths({
+        filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'] }],
+        multiple: false,
+        title: t('sound.soundPickTitle')
+      })
+      const path = picked && picked[0]
+      if (!path) return
+      await loadCustomSound(path)
+      const name = customFileName(path)
+      ctxRef.storage.set(SOUND_CUSTOM_PATH_KEY, path)
+      ctxRef.storage.set(SOUND_CUSTOM_NAME_KEY, name)
+      ctxRef.storage.set(SOUND_SOURCE_KEY, 'custom')
+      setSoundSourceState('custom')
+      setCustomNameState(name)
+      playCustomCue(soundStep)
+      haptic('crisp')
+    } catch (e) {
+      host.notify({ kind: 'error', message: t('sound.loadFailed') + ' ' + (e && e.message) })
+    }
+  }
+  const clearCustomSound = () => {
+    customBuffer = null
+    customLoadedPath = null
+    customPeak = 1
+    ctxRef.storage.set(SOUND_CUSTOM_PATH_KEY, '')
+    ctxRef.storage.set(SOUND_CUSTOM_NAME_KEY, '')
+    setCustomNameState('')
+    haptic('tap')
+  }
+  // 接管 = 写 app 的全局静音键（内置完成音/思考音/唤醒音/触觉一起静）。
+  // app 的 atom 只在启动时读一次 → 必须 Ctrl+R 才生效，面板如实提示。
+  const toggleTakeover = (next) => {
+    setTakeoverState(next)
+    ctxRef.storage.set(SOUND_TAKEOVER_KEY, next)
+    writeNativeSoundMuted(next)
+    if (next && !soundOn) toggleSound(true)
+    haptic('tap')
+  }
+
   const [zoom, setZoomState] = useState(() => '90')
   const [introOn, setIntroOn] = useState(() => {
     try { return localStorage.getItem(INTRO_NATIVE_KEY) !== 'false' } catch { return true }
@@ -2179,6 +2795,153 @@ function AppearancePanel() {
             })
         ]
       }),
+      // 完成提示音（P1：内置 14 个音效 + 音量档位 + 试听）
+      jsxs('div', {
+        className: 'flex flex-col gap-1.5 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
+        children: [
+          jsxs('div', {
+            className: 'flex items-center gap-2.5',
+            children: [
+              jsx('span', {
+                className: 'flex size-6 shrink-0 items-center justify-center',
+                children: jsx(icons.Bell, { className: 'size-3.5 text-(--ui-text-secondary)' })
+              }),
+              jsxs('div', {
+                className: 'min-w-0 flex-1',
+                children: [
+                  jsx('div', { className: 'text-[0.75rem] leading-tight', children: t('sound.title') }),
+                  jsx('div', {
+                    className: 'mt-0.5 text-[0.6875rem] leading-tight text-(--ui-text-tertiary)',
+                    children: t('sound.desc')
+                  })
+                ]
+              }),
+              jsx(SegmentedControl, {
+                options: [
+                  { id: 'off', label: t('sound.off') },
+                  { id: 'on', label: t('sound.on') }
+                ],
+                value: soundOn ? 'on' : 'off',
+                onChange: (id) => toggleSound(id === 'on'),
+                className: 'ml-auto',
+                style: { width: '150px', flexShrink: 0 }
+              })
+            ]
+          }),
+          jsx(ControlRow, {
+            label: t('sound.source'),
+            children: jsx(SegmentedControl, {
+              options: [
+                { id: 'preset', label: t('sound.sourcePreset') },
+                { id: 'custom', label: t('sound.sourceCustom') }
+              ],
+              value: soundSource,
+              onChange: setSoundSource,
+              className: 'w-full'
+            })
+          }),
+          soundSource === 'preset'
+            ? jsx(ControlRow, {
+                label: t('sound.preset'),
+                children: jsxs('div', {
+                  className: 'flex min-w-0 items-center gap-2',
+                  children: [
+                    jsx('select', {
+                      value: String(soundVariant),
+                      onChange: (e) => setSoundVariant(Number(e.target.value)),
+                      className: 'h-7 min-w-0 flex-1 cursor-pointer rounded-md px-1.5 text-[0.6875rem]',
+                      style: SOUND_SELECT_STYLE,
+                      'aria-label': t('sound.preset'),
+                      children: SOUND_VARIANTS.map((v) =>
+                        jsx('option', { value: String(v.id), children: v.name }, v.id))
+                    }),
+                    jsx('div', {
+                      className: SOUND_BTN_CLASS,
+                      style: SOUND_BTN_STYLE,
+                      onClick: () => { playCue(soundVariant, soundStep); haptic('crisp') },
+                      role: 'button',
+                      children: [jsx(icons.Play, { className: 'size-3' }), t('sound.preview')]
+                    })
+                  ]
+                })
+              })
+            : jsxs('div', {
+                className: 'flex flex-col gap-1.5',
+                children: [
+                  jsx(ControlRow, {
+                    label: t('sound.sourceCustom'),
+                    children: jsx('div', {
+                      className: 'truncate text-[0.6875rem] leading-tight text-(--ui-text-secondary)',
+                      title: customName || t('sound.none'),
+                      children: customName || t('sound.none')
+                    })
+                  }),
+                  jsx(ControlRow, {
+                    label: '',
+                    children: jsxs('div', {
+                      className: 'flex flex-wrap items-center gap-2',
+                      children: [
+                        jsx('div', {
+                          className: SOUND_BTN_CLASS,
+                          style: SOUND_BTN_STYLE,
+                          onClick: () => { void pickCustomSound() },
+                          role: 'button',
+                          children: [jsx(icons.FolderOpen, { className: 'size-3' }), t('sound.pick')]
+                        }),
+                        jsx('div', {
+                          className: SOUND_BTN_CLASS,
+                          style: SOUND_BTN_STYLE,
+                          onClick: () => { previewSound(); haptic('crisp') },
+                          role: 'button',
+                          children: [jsx(icons.Play, { className: 'size-3' }), t('sound.preview')]
+                        }),
+                        customName &&
+                          jsx('div', {
+                            className: SOUND_BTN_CLASS,
+                            style: SOUND_BTN_STYLE,
+                            onClick: clearCustomSound,
+                            role: 'button',
+                            children: [jsx(icons.Trash2, { className: 'size-3' }), t('sound.clear')]
+                          })
+                      ]
+                    })
+                  })
+                ]
+              }),
+          jsx(ControlRow, {
+            label: t('sound.volume'),
+            children: jsx(SegmentedControl, {
+              options: SOUND_VOLUME_OPTIONS,
+              value: String(soundStep),
+              onChange: setSoundStep,
+              className: 'w-full'
+            })
+          }),
+          jsx(ControlRow, {
+            label: t('sound.takeover'),
+            children: jsx(SegmentedControl, {
+              options: [
+                { id: 'off', label: t('sound.takeoverOff') },
+                { id: 'on', label: t('sound.takeoverOn') }
+              ],
+              value: takeover ? 'on' : 'off',
+              onChange: (id) => toggleTakeover(id === 'on'),
+              className: 'w-full'
+            })
+          }),
+          takeover &&
+            jsx('div', {
+              className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
+              children: t('sound.takeoverNote')
+            }),
+          soundOn &&
+            jsx('div', {
+              className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
+              children: t('sound.note')
+            })
+        ]
+      }),
+
       // 界面缩放
       jsxs('div', {
         className: 'flex flex-col gap-1.5 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
@@ -2240,9 +3003,9 @@ function AppearancePanel() {
         ]
       })
     ]
-  // 区块索引：0=标题 1=主题 2=字体 3=纸纹 4=标签栏 5=密度 6=聊天背景 7=窗口透明 8=开场标识 9=缩放 10=底部提示+布局开关
+  // 区块索引：0=标题 1=主题 2=字体 3=纸纹 4=标签栏 5=密度 6=聊天背景 7=窗口透明 8=开场标识 9=完成提示音 10=缩放 11=底部提示+布局开关
   const [secTitle, secTheme, secFont, secPaper, secTabStrip, secDensity, secBackdrop,
-         secTranslucency, secIntro, secZoom, secFooter] = secChildren
+         secTranslucency, secIntro, secSound, secZoom, secFooter] = secChildren
 
   // 双栏：标题通栏 + 左右两列；单栏：与改前完全一致的顺序；底部提示两种模式共用
   return jsxs('div', {
@@ -2260,16 +3023,16 @@ function AppearancePanel() {
                 style: { paddingRight: '12px' },
                 children: [secTheme, secFont, secPaper, secTabStrip, secDensity]
               }),
-              // 右列：聊天背景 → 窗口透明 → 开场标识 → 缩放（pl 内联，与左列对称）
+              // 右列：聊天背景 → 窗口透明 → 开场标识 → 完成提示音 → 缩放（pl 内联，与左列对称）
               jsxs('div', {
                 className: 'flex min-w-0 flex-1 flex-col border-l border-(--ui-stroke-secondary)',
                 style: { paddingLeft: '12px' },
-                children: [secBackdrop, secTranslucency, secIntro, secZoom]
+                children: [secBackdrop, secTranslucency, secIntro, secSound, secZoom]
               })
             ]
           })
         : [secTheme, secFont, secPaper, secTabStrip, secDensity, secBackdrop,
-           secTranslucency, secIntro, secZoom],
+           secTranslucency, secIntro, secSound, secZoom],
       secFooter
     ]
   })
@@ -2279,7 +3042,7 @@ function AppearancePanel() {
 export default {
   id: ID,
   name: '外观整合面板（Hermes Appearance Hub）',
-  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-20px)+思考块去灰/卡片+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
+  description: '外观整合面板（状态栏「外观」）：12主题(含Binshao暖纸)·简繁EN语言切换·纸纹·霞鹜文楷·界面缩放·窗口透明·开场标识·完成提示音(14音效+自定义音频/1·3·6·9倍/响度归一化/接管静音内置音)·双栏布局；整合 ui-beautify：界面/正文/代码/思考四类字体+字号档位(12-20px)+思考块去灰/卡片+标签栏字号，后端 /fonts 枚举本机字体。纯前端注入 CSS 变量 + 面板设置。',
   defaultEnabled: true,
   register(ctx) {
     try {
@@ -2316,6 +3079,11 @@ export default {
       // 避免用户首次点聊天背景时键验证法探测导致开场标识闪动
       loadOfficialStores().catch(() => {})
 
+      // 完成提示音：插件自己播（P1 与 app 内置音并存，接管开关在下一阶段）
+      const offCue = host.onEvent('message.complete', () => {
+        void playCompletionCue().catch(() => {})
+      })
+
       // 卸载/重载时清理注入，不留残留
       ctx.onDispose(() => {
         langObserver.disconnect()
@@ -2326,6 +3094,7 @@ export default {
         zoomUnsubscribeNative = null
         zoomSubscribers.clear()
         disposeI18n()
+        offCue()
         ctxRef = null
       })
 
