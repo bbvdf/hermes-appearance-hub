@@ -31,7 +31,28 @@ export const LOCALES = {
       gridTitle: 'Theme',
       gridDesc: 'Desktop palettes only. The selected mode is applied on top.'
     },
-    font: { title: 'LXGW Fonts', desc: 'UI font · latest action wins vs official chat font', yieldNote: 'LXGW takes over; edit the chat font in Settings to hand control back.' },
+    font: { title: 'Fonts', desc: 'Custom UI / body / code / thinking fonts, sizes and thinking-block look · latest action wins vs official chat font', yieldNote: 'LXGW takes over; edit the chat font in Settings to hand control back.',
+      ui: 'UI font (empty = default)', text: 'Chat body font (empty = follow UI)',
+      tabSize: 'Tab strip size', code: 'Code font (empty = default mono)',
+      thinking: 'Thinking content font (empty = default)',
+      thinkColor: 'Thinking color (text + border)', thinkBox: 'Thinking block look',
+      thinkBoxOff: 'No frame', thinkBoxBorder: 'Hairline card', thinkBoxRail: 'Left accent rail', thinkBoxTint: 'Tinted card',
+      tintStrength: 'Tint strength', reset: 'Reset to defaults',
+      colorPrimary: 'Body color (brightest)', colorSecondary: 'Light gray', colorSystem: 'Original palette',
+      browse: 'Browse…', collapse: 'Collapse', familyPlaceholder: 'Font family',
+      sizeDefault: 'Default', sizeBase: 'Base', sizeFollowUI: 'Follow UI', sizeFollowBody: 'Follow body', sizeTitle: 'Size' },
+    sound: {
+      title: 'Completion Sound', desc: 'A cue when a turn finishes · presets loudness-normalised · up to 9×',
+      on: 'On', off: 'Off',
+      preset: 'Sound', preview: 'Preview', volume: 'Volume',
+      source: 'Source', sourcePreset: 'Built-in', sourceCustom: 'My file',
+      pick: 'Choose file', clear: 'Remove', none: 'No audio file chosen yet',
+      takeover: 'Takeover', takeoverOff: 'Off', takeoverOn: 'On',
+      soundPickTitle: 'Choose a completion sound',
+      loadFailed: 'Could not read that audio (too large or unsupported):',
+      takeoverNote: 'On = mute Hermes\u2019 own cue. It also mutes the thinking sound, the wake chime and haptics; press Ctrl+R to reload the window for it to take effect.',
+      note: 'Presets are loudness-normalised, so switching them no longer changes volume. 9× is ~19 dB louder than Hermes\u2019 built-in cue.'
+    },
     paper: {
       title: 'Paper Texture', desc: 'Rice-paper grain layer · follows light/dark',
       recipeLight: 'Light recipe', recipeDark: 'Dark recipe',
@@ -78,7 +99,28 @@ export const LOCALES = {
       gridTitle: '主题',
       gridDesc: '仅桌面端调色板。所选模式叠加其上。'
     },
-    font: { title: '霞鹜文楷', desc: '界面字体 · 与官方聊天字体按最后操作优先', yieldNote: '霞鹜文楷已接管界面字体；在官方设置页改聊天字体即可切回。' },
+    font: { title: '字体', desc: '自定义界面/正文/代码/思考字体与字号 · 思考块外观 · 与官方聊天字体按最后操作优先', yieldNote: '霞鹜文楷已接管界面字体；在官方设置页改聊天字体即可切回。',
+      ui: '界面 UI 字体（留空=默认）', text: '聊天正文字体（留空=跟随UI）',
+      tabSize: '标签栏字号', code: '代码块字体（留空=默认等宽）',
+      thinking: '思考内容字体（留空=默认）',
+      thinkColor: '思考块颜色（文字和边框一起变）', thinkBox: '思考块外形',
+      thinkBoxOff: '不要框', thinkBoxBorder: '细边框卡片', thinkBoxRail: '左边一条竖线', thinkBoxTint: '主题色淡底',
+      tintStrength: '底色浓度', reset: '重置为默认',
+      colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色',
+      browse: '浏览…', collapse: '收起', familyPlaceholder: '字体家族名',
+      sizeDefault: '默认', sizeBase: '基准', sizeFollowUI: '跟随UI', sizeFollowBody: '跟随正文', sizeTitle: '字号' },
+    sound: {
+      title: '完成提示音', desc: 'AI 说完话时响一声 · 各音效响度已统一 · 最大 9 倍',
+      on: '开', off: '关',
+      preset: '音效', preview: '试听', volume: '音量',
+      source: '音源', sourcePreset: '内置音效', sourceCustom: '自定义音频',
+      pick: '选择音频', clear: '移除', none: '还没选音频文件',
+      takeover: '接管', takeoverOff: '关', takeoverOn: '开',
+      soundPickTitle: '选择提示音音频',
+      loadFailed: '这个音频读不了(可能太大或格式不支持):',
+      takeoverNote: '开启 = 把 Hermes 自带的提示音静音。它会连带静掉思考音、唤醒音和触觉反馈；改完按 Ctrl+R 重载窗口才生效。',
+      note: '各音效响度已拉平，换音效不会再忽大忽小。9 倍比 Hermes 内置提示音响约 19 分贝；内置音仍会同时响，可用「接管」开关把它静音。'
+    },
     paper: {
       title: '纸纹模拟', desc: '宣纸噪点层 · 随明暗自动切换',
       recipeLight: '明亮配方', recipeDark: '暗色配方',
@@ -125,7 +167,28 @@ export const LOCALES = {
       gridTitle: '主題',
       gridDesc: '僅限桌面端的調色盤。所選模式會套用在其上。'
     },
-    font: { title: '霞鶩文楷', desc: '介面字型 · 與官方聊天字型按最後操作優先', yieldNote: '霞鶩文楷已接管介面字型；在官方設定頁改聊天字型即可切回。' },
+    font: { title: '字型', desc: '自訂介面/正文/程式碼/思考字型與字號 · 思考區塊外觀 · 與官方聊天字型按最後操作優先', yieldNote: '霞鶩文楷已接管介面字型；在官方設定頁改聊天字型即可切回。',
+      ui: '介面 UI 字型（留空=預設）', text: '聊天正文字型（留空=跟隨UI）',
+      tabSize: '分頁列字號', code: '程式碼字型（留空=預設等寬）',
+      thinking: '思考內容字型（留空=預設）',
+      thinkColor: '思考區塊顏色（文字與邊框一起變）', thinkBox: '思考區塊外形',
+      thinkBoxOff: '不要框', thinkBoxBorder: '細邊框卡片', thinkBoxRail: '左邊一條豎線', thinkBoxTint: '主題色淡底',
+      tintStrength: '底色濃度', reset: '重設為預設',
+      colorPrimary: '正文色（最亮）', colorSecondary: '亮灰', colorSystem: '原配色',
+      browse: '瀏覽…', collapse: '收合', familyPlaceholder: '字型家族名',
+      sizeDefault: '預設', sizeBase: '基準', sizeFollowUI: '跟隨UI', sizeFollowBody: '跟隨正文', sizeTitle: '字號' },
+    sound: {
+      title: '完成提示音', desc: 'AI 說完話時響一聲 · 各音效響度已統一 · 最大 9 倍',
+      on: '開啟', off: '關閉',
+      preset: '音效', preview: '試聽', volume: '音量',
+      source: '音源', sourcePreset: '內建音效', sourceCustom: '自訂音訊',
+      pick: '選擇音訊', clear: '移除', none: '還沒選音訊檔',
+      takeover: '接管', takeoverOff: '關閉', takeoverOn: '開啟',
+      soundPickTitle: '選擇提示音音訊',
+      loadFailed: '這個音訊讀不了(可能過大或格式不支援):',
+      takeoverNote: '開啟 = 把 Hermes 內建的提示音靜音。它會連帶靜掉思考音、喚醒音與觸覺回饋；改完按 Ctrl+R 重載視窗才生效。',
+      note: '各音效響度已拉平，換音效不會再忽大忽小。9 倍比 Hermes 內建提示音響約 19 分貝；內建音仍會同時響，可用「接管」開關把它靜音。'
+    },
     paper: {
       title: '紙紋模擬', desc: '宣紙噪點層 · 隨明暗自動切換',
       recipeLight: '明亮配方', recipeDark: '暗色配方',
@@ -427,12 +490,254 @@ function removePaper() {
   }
 }
 
-// ── 字体 ────────────────────────────────────────────────────────
-const FONT_SANS =
-  '"LXGW WenKai", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji'
-const FONT_MONO =
-  '"LXGW WenKai Mono", Menlo, Monaco, "SF Mono", monospace, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji'
-// 只用本机已装的 LXGW WenKai；未安装则 CSS 回退到后面的系统字体栈。不走 CDN。
+// ── 字体（霞鹜文楷 + legacy 仓库的字体/字号/思考块增强）──────────────────
+// 本段是两个来源的合并：
+//   ① 上游 v3：霞鹜文楷一键接管 + 「最后动作胜」仲裁（font.winner）
+//   ② legacy 仓库：界面/正文/代码/思考四类字体自由选择、字号档位（12–22px）、
+//      思考块去灰/外形四档/底色浓度滑杆、标签栏字号
+// 二者共存：在 hub 里显式选了自定义界面字体 → hub 赢（用户最后动作在此）；只用
+// 默认文楷而官方聊天字体在场 → 让位官方，官方清空时 observer 拨回 hub。
+
+// ── 字体（霞鹜文楷默认 + ui-beautify 字体/字号/思考块整合）────────────────
+// 原 hermes-font-wenkai 的规则保留为默认（界面=霞鹜文楷、代码=霞鹜文楷 Mono）；
+// 整合 ui-beautify（maple-ui-font 更名）：界面/正文/代码/思考四类字体自由选择 +
+// 字号档位（12-22px）+ 思考块去灰/外形四档 + 标签栏字号。旧设置从
+// maple-ui-font-settings 一次性迁移，之后以本插件 ctx.storage 为准。
+const FONT_UI_KEY = 'font.uiFont'
+const FONT_UISIZE_KEY = 'font.uisize'
+const FONT_TEXTFONT_KEY = 'font.textFont'
+const FONT_TEXTSIZE_KEY = 'font.textSize'
+const FONT_CODEFONT_KEY = 'font.codeFont'
+const FONT_CODESIZE_KEY = 'font.codeSize'
+const FONT_THINKFONT_KEY = 'font.thinkingFont'
+const FONT_THINKSIZE_KEY = 'font.thinkSize'
+const FONT_THINKCOLOR_KEY = 'font.thinkingColor'
+const FONT_THINKBOX_KEY = 'font.thinkBox'
+const FONT_TABSIZE_KEY = 'font.tabSize'
+const FONT_THINKTINT_KEY = 'font.thinkTint'
+const FONT_LEGACY_KEY = 'maple-ui-font-settings' // ui-beautify 旧键，仅迁移用
+
+const FONT_SIZES = ['12', '14', '16', '18', '20', '22']
+// 比例取自 styles.css: tool=0.6875/0.8125, caption=0.75/0.8125, line=1.125/0.8125, captionLine=1/0.8125
+const FONT_RATIO = { tool: 0.85, caption: 0.92, line: 1.4, captionLine: 1.23 }
+const FONT_COLORS = [
+  { id: 'primary', labelKey: 'font.colorPrimary' },   // 正文色(最亮,去灰)
+  { id: 'secondary', labelKey: 'font.colorSecondary' }, // 亮灰
+  { id: 'system', labelKey: 'font.colorSystem' },       // 原配色(还原默认)
+]
+// 思考块卡片样式（四档；旧布尔值在 readFontSettings 里归一化）
+const THINK_BOX_STYLES = ['off', 'border', 'rail', 'tint']
+const THINK_BOX_DEFAULT = 'border'
+// 「底色浓度」滑杆：0 = 无底色，上限 24（再高就明显发蓝）。
+// 单一数字换成两个百分比：accent 给色相、base(≈0.45 倍) 给明暗——base 与背景永远对立，
+// 所以任何主题下都有可辨识的明暗差。标定：9 ≈ 浅色 #E0E8F7（Δ-31），12 ≈ #D7E1F5（Δ-40）。
+const THINK_TINT_MAX = 24
+const THINK_TINT_DEFAULT = 9
+const clampThinkTint = (v) => {
+  const n = Math.round(Number(v))
+  return Number.isFinite(n) ? Math.min(THINK_TINT_MAX, Math.max(0, n)) : THINK_TINT_DEFAULT
+}
+const thinkTintBase = (pct) => Math.max(0, Math.round(pct * 0.45))
+const FONT_DEFAULTS = {
+  uiFont: 'LXGW WenKai',        // 默认霞鹜文楷（保留原插件观感）
+  uisize: '',
+  textFont: '',
+  textSize: '14',
+  codeFont: 'LXGW WenKai Mono', // 默认霞鹜文楷 Mono
+  codeSize: '',
+  thinkingFont: '',
+  thinkSize: '12',
+  thinkingColor: 'primary',
+  thinkBox: THINK_BOX_DEFAULT,
+  thinkTint: THINK_TINT_DEFAULT,
+  tabSize: '',
+}
+// 界面字体栈（无衬线）：先用户选择，回落常用界面字体
+const FONT_UI_FALLBACK = `, 'Microsoft YaHei UI', 'Segoe UI', system-ui, -apple-system, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', emoji`
+const FONT_MONO_FALLBACK = `, ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, Menlo, monospace, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', emoji`
+
+// 系统未装字体时的 webfont 兜底：CDN 分片子集（97 片 × ~7KB，unicode-range 按需加载），
+// family 名与系统字体完全一致 → 装了用系统（零网络），没装走 CDN（零手工安装）。
+// 实测 CDN: jsdelivr lxgw-wenkai-webfont@1.7.0（MIT，霞鹜文楷官方 webfont 化发行）。
+const FONT_WEBFONT_ID = ID + '-font-webfont'
+const FONT_WEBFONT_URL = 'https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css'
+
+// 字体名 → 带引号 CSS 字符串（JSON 转义安全，防引号/反斜杠逃逸）；空值兜底 system-ui
+const fontQ = (name) => JSON.stringify(String(name).trim() || 'system-ui')
+
+// 从 ctx.storage 读全部字体设置（含默认值）
+function readFontSettings() {
+  const s = ctxRef ? ctxRef.storage : { get: () => undefined }
+  const pick = (key, def, valid) => {
+    const v = s.get(key, def)
+    // 显式空串 = 面板选了「跟随XX」档（'' 天然不在档位表里）→ 必须原样保留。
+    // 顶回 def 会让「跟随UI/跟随正文」静默变成硬编码档位（2026-09-17 修）。
+    if (v === '') return ''
+    return valid && Array.isArray(valid) && !valid.includes(v) ? def : v
+  }
+  return {
+    uiFont: String(s.get(FONT_UI_KEY, FONT_DEFAULTS.uiFont)),
+    uisize: pick(FONT_UISIZE_KEY, '', FONT_SIZES),
+    textFont: String(s.get(FONT_TEXTFONT_KEY, FONT_DEFAULTS.textFont)),
+    textSize: pick(FONT_TEXTSIZE_KEY, FONT_DEFAULTS.textSize, FONT_SIZES),
+    codeFont: String(s.get(FONT_CODEFONT_KEY, FONT_DEFAULTS.codeFont)),
+    codeSize: pick(FONT_CODESIZE_KEY, '', FONT_SIZES),
+    thinkingFont: String(s.get(FONT_THINKFONT_KEY, FONT_DEFAULTS.thinkingFont)),
+    thinkSize: pick(FONT_THINKSIZE_KEY, FONT_DEFAULTS.thinkSize, FONT_SIZES),
+    thinkingColor: pick(FONT_THINKCOLOR_KEY, FONT_DEFAULTS.thinkingColor, FONT_COLORS.map((c) => c.id)),
+    thinkBox: normalizeThinkBox(s.get(FONT_THINKBOX_KEY, FONT_DEFAULTS.thinkBox)),
+    thinkTint: clampThinkTint(s.get(FONT_THINKTINT_KEY, FONT_DEFAULTS.thinkTint)),
+    tabSize: pick(FONT_TABSIZE_KEY, '', FONT_SIZES),
+  }
+}
+
+// 思考块卡片样式归一化：兼容旧版布尔值（true=细描边卡片、false=关）
+function normalizeThinkBox(v) {
+  if (v === true) return 'border'
+  if (v === false) return 'off'
+  return THINK_BOX_STYLES.includes(v) ? v : THINK_BOX_DEFAULT
+}
+
+// 一次性迁移 ui-beautify（maple-ui-font-settings）旧设置
+function migrateLegacyFontSettings() {
+  try {
+    const raw = localStorage.getItem(FONT_LEGACY_KEY)
+    if (!raw) return
+    const old = JSON.parse(raw)
+    if (!old || typeof old !== 'object') return
+    const s = ctxRef.storage
+    const writeIf = (key, val, def) => {
+      const v = val === undefined ? def : val
+      if (v !== undefined && String(v) !== String(def)) s.set(key, v)
+    }
+    writeIf(FONT_UI_KEY, old.uiFont, FONT_DEFAULTS.uiFont)
+    writeIf(FONT_UISIZE_KEY, old.uisize, '')
+    writeIf(FONT_TEXTFONT_KEY, old.textFont, '')
+    writeIf(FONT_TEXTSIZE_KEY, old.textSize, FONT_DEFAULTS.textSize)
+    writeIf(FONT_CODEFONT_KEY, old.codeFont, FONT_DEFAULTS.codeFont)
+    writeIf(FONT_CODESIZE_KEY, old.codeSize, '')
+    writeIf(FONT_THINKFONT_KEY, old.thinkingFont, '')
+    writeIf(FONT_THINKSIZE_KEY, old.thinkSize, FONT_DEFAULTS.thinkSize)
+    writeIf(FONT_THINKCOLOR_KEY, old.thinkingColor, FONT_DEFAULTS.thinkingColor)
+    writeIf(FONT_THINKBOX_KEY, old.thinkBox, FONT_DEFAULTS.thinkBox)
+    writeIf(FONT_TABSIZE_KEY, old.tabSize, '')
+    localStorage.removeItem(FONT_LEGACY_KEY)
+  } catch {}
+}
+
+function ensureFontWebfont(uiFont, codeFont) {
+  // 界面/代码字体都不是霞鹜系 → 无需 CDN；是且系统未装 → 引 CDN 兜底
+  const needWenkai = /LXGW|WenKai|文楷/i.test(String(uiFont || '')) || /LXGW|WenKai|文楷/i.test(String(codeFont || ''))
+  if (!needWenkai) {
+    const link = document.getElementById(FONT_WEBFONT_ID)
+    if (link) link.remove()
+    return
+  }
+  try {
+    if (document.fonts && document.fonts.check('12px "LXGW WenKai"')) return
+  } catch {}
+  let link = document.getElementById(FONT_WEBFONT_ID)
+  if (!link) {
+    link = document.createElement('link')
+    link.id = FONT_WEBFONT_ID
+    link.rel = 'stylesheet'
+    link.href = FONT_WEBFONT_URL
+    document.head.appendChild(link)
+  }
+}
+
+// 滑杆节流：拖动中不入库，停手 350ms 落盘（模块级即可，面板是单例）
+let thinkTintTimer = null
+
+// 由当前设置生成全部字体 CSS（移植 ui-beautify renderCss，样式 id 用本插件专属）
+function renderFontCss(s, opts) {
+  // skipSans：与官方聊天字体的仲裁让位态——省略界面字体规则，由官方 inline 栈上屏
+  const skipSans = !!(opts && opts.skipSans)
+  const rules = []
+  // UI 界面字体（全局 chrome：body 与 Tailwind --font-sans 都吃 --dt-font-sans。
+  // 必须 !important：主题切换 applyTheme 以 inline style 重写该变量）
+  if (String(s.uiFont).trim() && !skipSans) {
+    rules.push(`:root{--dt-font-sans:${fontQ(s.uiFont)}${FONT_UI_FALLBACK}!important}`)
+  }
+  // UI 基准字号（styles.css html{font-size:var(--dt-base-size)}；留空不动）
+  if (FONT_SIZES.includes(s.uisize)) {
+    rules.push(`:root{--dt-base-size:${Number(s.uisize)}px}`)
+  }
+  // 聊天正文字体（留空=跟随 UI；作用于线程内容根，全部消息文本继承）
+  if (String(s.textFont).trim()) {
+    rules.push(`[data-slot="aui_thread-content"]{font-family:${fontQ(s.textFont)}${FONT_UI_FALLBACK}!important}`)
+  }
+  // 代码块字体：留空 = 不覆盖（保持主题/系统等宽）；非空同理由 !important 压主题
+  if (String(s.codeFont).trim()) {
+    rules.push(`:root{--dt-font-mono:${fontQ(s.codeFont)}${FONT_MONO_FALLBACK}!important}`)
+  }
+  // 代码块字号：档位=独立；留空=跟随正文（显式 var，压掉 prose 的 ~0.875em）
+  rules.push(
+    `.aui-md code,.aui-md pre{font-size:${
+      FONT_SIZES.includes(s.codeSize) ? `${Number(s.codeSize)}px` : 'var(--conversation-text-font-size)'
+    }!important}`
+  )
+  // 正文字号：档位=绝对 px（并由正文派生 tool/caption/行高 5 个会话变量）；
+  // 留空（「跟随UI」）= 不写任何 --conversation-* 规则 → 核心 :root 的 rem 定义
+  // （styles.css:474-478 的 0.8125rem 等）原样生效，随界面「基准」字号 --dt-base-size 一起缩放。
+  // ⚠️ 勿再用 px 兜底留空档：会压掉 rem 体系，基准改大而正文纹丝不动。
+  if (FONT_SIZES.includes(s.textSize)) {
+    const px = Number(s.textSize)
+    rules.push(`:root{--conversation-text-font-size:${px}px;--conversation-tool-font-size:${(px * FONT_RATIO.tool).toFixed(2)}px;--conversation-caption-font-size:${(px * FONT_RATIO.caption).toFixed(2)}px;--conversation-line-height:${(px * FONT_RATIO.line).toFixed(2)}px;--conversation-caption-line-height:${(px * FONT_RATIO.captionLine).toFixed(2)}px}`)
+  }
+  // 标签栏字号（PaneTab 文字 span 硬编码 text-[9px]@pane-tab.tsx:227，容器 font-size 会被其直接声明无视，
+  // 须命中内层文字 span：'group/tab' 容器 + 'truncate' 文字 token；留空 = 不覆盖）
+  if (FONT_SIZES.includes(s.tabSize)) {
+    rules.push(`[data-zone-tabstrip] [class~="group/tab"] [class~="truncate"]{font-size:${Number(s.tabSize)}px!important}`)
+  }
+  // 思考块：
+  //  ① 发灰根因（styles.css:1917）：disclosure 容器带 data-conversation-scaffold
+  //     → opacity 0.67(rest)/1(hover)，整块(标题行+正文)一起淡；
+  //     标题行另用 --conversation-scaffold-text(64% base)灰字。
+  //     对策：容器 opacity:1 无条件压死(hover 态规则随之失效)，颜色按档全后代覆盖。
+  //  ② 卡片样式四档（off/border/rail/tint）：描边色随颜色档；描边与底色一律用
+  //     base(前景色)/accent 的 color-mix —— base 永远与背景对立，同一公式在
+  //     浅色/深色下自动等效，不必写 :root.dark 分支。
+  // 选择器必须带 [data-conversation-scaffold] 且 background 要 !important：
+  // app 的 styles.css:1947 给这个元素压了 `background: transparent !important`
+  // （「脚手架一律透明」），插件画底色会被静默吃掉 —— 表现是「边框有、底色没有」。
+  // 同为本源 + 都 !important 时比特异性：(0,2,0) > (0,1,0)，插件胜。
+  const THINK = '[data-slot="aui_thinking-disclosure"][data-conversation-scaffold]'
+  const think = [
+    `${THINK},${THINK} *{opacity:1!important}`,
+  ]
+  if (s.thinkingColor === 'primary') {
+    think.push(`${THINK},${THINK} *{color:var(--ui-text-primary)!important}`)
+  } else if (s.thinkingColor === 'secondary') {
+    think.push(`${THINK},${THINK} *{color:var(--ui-text-secondary)!important}`)
+  }
+  // 描边跟所选颜色档走：正文色档最清晰，亮灰档次之，原配色档回落主题描边 token
+  const edge =
+    s.thinkingColor === 'primary' ? 'color-mix(in srgb,var(--ui-base) 20%,transparent)'
+      : s.thinkingColor === 'secondary' ? 'color-mix(in srgb,var(--ui-base) 13%,transparent)'
+        : 'var(--ui-stroke-secondary)'
+  // 底色浓度 9%/4%：nous 浅色下 ≈ #E0E8F7（Δ ≈ -31/-23/-8）、深色下 ≈ #1A2334。
+  // 标定过程（实测反馈）：6%/3%（Δ-22）在白底 + 纸纹下看不见 → 12%/5%（Δ-40）偏浓 → 9%/4% 居中。
+  // accent 给色相、base 给明暗——base 永远与背景对立，任何主题都有可辨识的明暗差。
+  const tintPct = clampThinkTint(s.thinkTint)
+  const accentFill = tintPct <= 0
+    ? 'transparent'
+    : `color-mix(in srgb,var(--ui-accent) ${tintPct}%,color-mix(in srgb,var(--ui-base) ${thinkTintBase(tintPct)}%,transparent))`
+  if (s.thinkBox === 'border') {
+    think.push(`${THINK}{border:1px solid ${edge};border-radius:10px;padding:7px 12px 9px;background:color-mix(in srgb,var(--ui-bg-chrome) 45%,transparent)!important}`)
+  } else if (s.thinkBox === 'rail') {
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-base) 8%,transparent);border-left:3px solid color-mix(in srgb,var(--ui-accent) 70%,var(--ui-base));border-radius:8px;padding:6px 10px 8px 11px;background:${accentFill}!important}`)
+  } else if (s.thinkBox === 'tint') {
+    think.push(`${THINK}{border:1px solid color-mix(in srgb,var(--ui-accent) 34%,${edge});border-radius:10px;padding:7px 12px 9px;background:${accentFill}!important}`)
+  }
+  think.push(
+    `[data-slot="aui_thinking-body"]{font-style:italic;overscroll-behavior:auto!important;${
+      FONT_SIZES.includes(s.thinkSize) ? `font-size:${Number(s.thinkSize)}px;` : 'font-size:var(--conversation-text-font-size);'
+    }${String(s.thinkingFont).trim() ? `font-family:${fontQ(s.thinkingFont)}${FONT_UI_FALLBACK}!important;` : ''}}`
+  )
+  rules.push(think.join('\n'))
+  return rules.join('\n')
+}
 
 // 官方聊天字体的「用户字体段」提取：applyTheme 把 config desktop.font_family 经
 // quoteSingleFamily 写成 `'UserFont', <主题栈>` 注入 root.style inline（单引号开头）；
@@ -452,7 +757,16 @@ function officialUserFont() {
 // 上一次观测到的官方用户字体段（模块级真相，冷启动播种当前值）
 let officialUserFontLast = null
 
-function applyFont() {
+
+// 界面字体是否为霞鹜系（默认档）——用于区分「hub 的默认接管」与「用户显式选的自定义字体」
+function isWenkaiFont(name) {
+  return /LXGW|WenKai|文楷/i.test(String(name || ''))
+}
+
+// 生成/更新字体样式表。override：拖「底色浓度」滑杆时的即时预览（只重建样式，不写 storage）
+function applyFont(override) {
+  const s = override ? { ...readFontSettings(), ...override } : readFontSettings()
+  ensureFontWebfont(s.uiFont, s.codeFont)
   let style = document.getElementById(FONT_STYLE_ID)
   if (!style) {
     style = document.createElement('style')
@@ -460,16 +774,18 @@ function applyFont() {
     document.head.appendChild(style)
   }
   // 字体归属=最后动作胜（font.winner）：
-  //   hub      → 注入 sans（哪怕官方有值；用户最后点的是这里）
-  //   official → 省略 sans，官方 inline 上屏；官方清空时 observer 会把 winner 拨回 hub
-  // 默认 hub：等价 v3.0.0 前行为，老用户零打扰。mono/tooltip 恒随开关（官方链不碰）。
+  //   hub      → 注入界面字体规则（哪怕官方有值；用户最后点的是这里）
+  //   official → 省略界面字体规则，官方 inline 上屏；官方清空时 observer 拨回 hub
+  // 例外：用户把界面字体改成非文楷的自定义字体，视为 hub 的显式操作，仍注入
+  // （否则面板刚选的字体被「让位」静默吞掉）。默认 hub 等价 v3.0.0 前行为。
   const winner = ctxRef ? ctxRef.storage.get(FONT_WINNER_KEY, 'hub') : 'hub'
-  const sansDecl = winner === 'hub' ? '--dt-font-sans:' + FONT_SANS + ' !important;' : ''
+  const customUi = String(s.uiFont || '').trim() !== '' && !isWenkaiFont(s.uiFont)
+  const skipSans = winner === 'official' && !customUi
   style.textContent =
-    ':root{' + sansDecl +
-    '--dt-font-mono:' + FONT_MONO + ' !important;' +
-    '--hub-ui-font:' + FONT_SANS + '}' +
-    '[data-slot="tooltip-content"] > span{font-family:var(--hub-ui-font) !important}'
+    renderFontCss(s, { skipSans }) + '\n' +
+    // tooltip 的 chip 硬编码了 [font-family:Arial,sans-serif]（tooltip.tsx），不走变量继承，
+    // 需用 data-slot 定位覆盖，否则提示文字永远系统字体。
+    '[data-slot="tooltip-content"] > span{font-family:var(--dt-font-sans) !important}'
 }
 
 // 官方聊天字体编辑监听（常驻，register 挂、dispose 摘）：只认「用户字体段」变化——
@@ -509,6 +825,85 @@ function unwatchOfficialChatFont() {
 function removeFont() {
   const style = document.getElementById(FONT_STYLE_ID)
   if (style) style.remove()
+  const link = document.getElementById(FONT_WEBFONT_ID)
+  if (link) link.remove()
+}
+
+// ── 字体字段控件（模块级定义，见 legacy：放组件体内会每帧换引用导致输入被打断）──
+const FONT_PRESETS = [
+  'LXGW WenKai', 'LXGW WenKai Mono', 'Maple UI', 'Maple Mono', 'JetBrains Mono', 'Cascadia Mono', 'Consolas', 'Menlo',
+  'Source Code Pro', 'Fira Code', 'Microsoft YaHei UI', 'Microsoft YaHei',
+  'Segoe UI', 'Segoe UI Variable', 'Noto Sans SC', 'SimHei', 'DengXian', 'KaiTi',
+]
+
+// 字体字段：输入框(自由编辑，输入即生效)+「浏览…」展开本机字体列表点选 + 独立字号。
+// 不用 datalist(浏览器按输入值过滤，看不到全部)也不走 queryLocalFonts
+// (Electron 无权限 handler 会挂起/拒绝)——后端 /fonts 列表是唯一可靠来源。
+// 定义在模块顶层——放组件函数体内会每帧产生新函数引用，React 视为不同组件类型而卸载重挂，
+// 输入框正在输入时会被打断（表现为打字丢字/失焦）。
+const FontField = ({ label, value, onChange, fieldKey, sizeValue, onSizeChange, sizeEmptyLabel, sysFonts, browseField, onToggleBrowse, labels }) => {
+  const open = browseField === fieldKey
+  const fontList = sysFonts.length ? sysFonts : FONT_PRESETS
+  return jsxs('div', {
+    className: 'flex flex-col gap-1',
+    children: [
+      jsxs('div', {
+        className: 'flex items-center justify-between gap-2',
+        children: [
+          jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: label }),
+          jsx('button', {
+            type: 'button',
+            title: open ? labels.collapseTitle : labels.browseTitle,
+            className:
+              'rounded-md border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.6875rem] text-(--ui-text-secondary) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)',
+            onClick: () => onToggleBrowse(open ? null : fieldKey),
+            children: open ? labels.collapse : labels.browse,
+          }),
+        ],
+      }),
+      jsxs('div', {
+        className: 'flex items-center gap-1.5',
+        children: [
+          jsx('input', {
+            value,
+            spellCheck: false,
+            placeholder: labels.familyPlaceholder,
+            className:
+              'min-w-0 flex-1 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-2 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+            onChange: (e) => onChange(e.target.value),
+          }),
+          jsx('select', {
+            value: sizeValue,
+            title: labels.sizeTitle,
+            className:
+              'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+            onChange: (e) => onSizeChange(e.target.value),
+            children: [
+              sizeEmptyLabel && jsx('option', { value: '', children: sizeEmptyLabel }, ''),
+              ...FONT_SIZES.map((id) => jsx('option', { value: id, children: `${id}px` }, id)),
+            ],
+          }),
+        ],
+      }),
+      open &&
+        jsx('div', {
+          className:
+            'max-h-40 overflow-auto overscroll-contain rounded-md border border-(--ui-stroke-secondary) py-0.5',
+          children: fontList.map((f) =>
+            jsx('button', {
+              type: 'button',
+              className:
+                'block w-full truncate px-2 py-0.5 text-left text-xs text-(--ui-text-secondary) transition-colors hover:bg-(--ui-accent) hover:text-foreground',
+              onClick: () => {
+                onChange(f)
+                onToggleBrowse(null)
+              },
+              children: f,
+            }, f)
+          ),
+        }),
+    ],
+  })
 }
 
 // ── 开场标识：DOM 文本替换层（即时生效）+ 原生键落盘（重启后一致）──────────
@@ -849,6 +1244,496 @@ function writeSimpleKey(key, value) {
     localStorage.setItem(key, value)
     window.dispatchEvent(new StorageEvent('storage', { key }))
   } catch {}
+}
+
+// ══ 移植自 bbvdf/hermes-appearance-hub-legacy：完成提示音 ═══════════════
+// 下面整段（常量 + Web Audio 合成器 + 14 个音效配方 + 响度归一化 + 自定义音频）
+// 与 legacy 仓库 desktop/plugin.js 的 sound 模块逐字一致，逻辑未改；仅面板 UI 重写为
+// 本仓库的行式风格（ControlRow / hover 说明带）。
+
+// ── 完成提示音（sound）：移植 app 内置合成器 + 可调音量档位 ──────────────
+// 内置实现在 apps/desktop/src/lib/completion-sound.ts：Web Audio 即时合成，
+// 每个音的包络峰值只有 0.02~0.07，再乘 master 0.48、dry 0.88 —— 输出峰值约
+// -31 dBFS，比系统通知音小 20+ dB。这就是「提示音声音小」的根因：它是刻意做
+// 成氛围级的轻声，而不是通知音；app 内部也没有音量项。
+// 插件带同一套合成器，唯一区别是 master 增益可调（0.5×~4×，1× = 内置原响度）。
+const SOUND_KEY = 'sound.enabled'            // 由本插件播放完成提示音
+const SOUND_VARIANT_KEY = 'sound.variantId'  // 选中的内置音效（1-14）
+const SOUND_VOLUME_KEY = 'sound.volumeStep'  // 音量档位索引
+const SOUND_BASE_GAIN = 0.48                 // 与内置 master.gain 对齐
+const SOUND_VOLUME_STEPS = [1, 3, 6, 9]
+const SOUND_VOLUME_OPTIONS = [
+  { id: '0', label: '1×' },
+  { id: '1', label: '3×' },
+  { id: '2', label: '6×' },
+  { id: '3', label: '9×' }
+]
+const SOUND_DEFAULT_STEP = 2 // 默认 6×（档位索引 2）：内置原响度就是用户说的「小」
+const SOUND_BTN_CLASS =
+  'flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-(--ui-stroke-secondary) px-2 text-[0.625rem] hover:bg-(--chrome-action-hover)'
+const SOUND_BTN_STYLE = { color: 'var(--ui-text-secondary)' }
+const SOUND_SELECT_STYLE = {
+  background: 'var(--ui-bg-elevated)',
+  border: '1px solid var(--ui-stroke-secondary)',
+  color: 'var(--ui-text-primary)'
+}
+
+// 音高（十二平均律），与内置同一组常数
+const SOUND_NOTES = {
+  A2: 110, A3: 220, A4: 440, A5: 880, B5: 987.77, C3: 130.81, C4: 261.63,
+  E4: 329.63, E5: 659.25, E6: 1318.51, G4: 392, G5: 783.99, C5: 523.25, C6: 1046.5
+}
+
+// 包络振荡器：线性起音 + 指数衰减（避免归零时的咔哒声）
+function cueVoice(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const peak = spec.gain ?? 0.5
+  const attack = spec.attack ?? 0.006
+  const end = start + spec.dur
+  osc.type = spec.type ?? 'sine'
+  osc.frequency.setValueAtTime(spec.freq, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+// 软拨弦：三角波短促击弦 + 上滑音
+function cuePluck(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const attack = spec.attack ?? 0.004
+  const glide = spec.glide ?? 0.16
+  const end = start + spec.decay
+  osc.type = 'triangle'
+  osc.frequency.setValueAtTime(spec.freqFrom, start)
+  osc.frequency.exponentialRampToValueAtTime(spec.freqTo, start + glide)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+// 慢起泛音绽放
+function cueBloom(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const hold = spec.hold ?? 0.08
+  const end = start + spec.attack + hold + spec.decay
+  osc.type = spec.type ?? 'sine'
+  osc.frequency.setValueAtTime(spec.freq, start)
+  if (spec.freqTo) osc.frequency.exponentialRampToValueAtTime(spec.freqTo, start + spec.attack + hold * 0.6)
+  osc.detune.setValueAtTime(spec.detune ?? 0, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + spec.attack)
+  env.gain.setValueAtTime(Math.max(spec.gain, 0.0002), start + spec.attack + hold)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+function cueNoiseSource(ac, seconds) {
+  const length = Math.floor(ac.sampleRate * seconds)
+  const buffer = ac.createBuffer(1, length, ac.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1
+  const source = ac.createBufferSource()
+  source.buffer = buffer
+  return source
+}
+
+// 带通噪声：一缕「空气感」
+function cueAirPuff(ac, master, t0, spec) {
+  const source = cueNoiseSource(ac, 0.12)
+  const filter = ac.createBiquadFilter()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const end = start + spec.decay
+  filter.type = 'bandpass'
+  filter.frequency.setValueAtTime(spec.freq, start)
+  filter.Q.setValueAtTime(spec.q ?? 1.2, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + 0.018)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  source.connect(filter)
+  filter.connect(env)
+  env.connect(master)
+  source.start(start)
+  source.stop(end + 0.02)
+}
+
+// 噪声扫频：轻快的「咻」声
+function cueWhoosh(ac, master, t0, spec) {
+  const source = cueNoiseSource(ac, 0.4)
+  const filter = ac.createBiquadFilter()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const end = start + spec.decay
+  filter.type = 'bandpass'
+  filter.frequency.setValueAtTime(spec.freqFrom, start)
+  filter.frequency.exponentialRampToValueAtTime(spec.freqTo, end)
+  filter.Q.setValueAtTime(spec.q ?? 0.8, start)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + 0.03)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  source.connect(filter)
+  filter.connect(env)
+  env.connect(master)
+  source.start(start)
+  source.stop(end + 0.02)
+}
+
+// 音高滑扫：调制解调器 / 科幻音
+function cueSweep(ac, master, t0, spec) {
+  const osc = ac.createOscillator()
+  const env = ac.createGain()
+  const start = t0 + (spec.start ?? 0)
+  const attack = spec.attack ?? 0.003
+  const end = start + spec.decay
+  osc.type = spec.type ?? 'triangle'
+  osc.frequency.setValueAtTime(spec.freqFrom, start)
+  osc.frequency.exponentialRampToValueAtTime(spec.freqTo, end - 0.02)
+  env.gain.setValueAtTime(0.0001, start)
+  env.gain.exponentialRampToValueAtTime(Math.max(spec.gain, 0.0002), start + attack)
+  env.gain.exponentialRampToValueAtTime(0.0001, end)
+  osc.connect(env)
+  env.connect(master)
+  osc.start(start)
+  osc.stop(end + 0.02)
+}
+
+let cueReverbImpulse = null
+
+// 一点点混响湿声，让音色待在房间里而不是铁罐里（脉冲响应生成一次并缓存）
+function cueReverb(ac) {
+  if (!cueReverbImpulse) {
+    const seconds = 1.6
+    const length = Math.floor(ac.sampleRate * seconds)
+    cueReverbImpulse = ac.createBuffer(2, length, ac.sampleRate)
+    for (let channel = 0; channel < 2; channel += 1) {
+      const data = cueReverbImpulse.getChannelData(channel)
+      for (let i = 0; i < length; i += 1) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 2.6
+      }
+    }
+  }
+  const convolver = ac.createConvolver()
+  convolver.buffer = cueReverbImpulse
+  return convolver
+}
+
+// 14 个内置音效（与 Hermes 设置里的同名同配方，逐个移植）
+const SOUND_VARIANTS = [
+  {
+    id: 1,
+    name: 'Two-note comfort',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.E4, dur: 0.22, gain: 0.05, attack: 0.03, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.08, { freq: SOUND_NOTES.C4, dur: 0.52, gain: 0.07, attack: 0.08, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.08, { freq: SOUND_NOTES.C3, dur: 0.46, gain: 0.02, attack: 0.1, type: 'sine' })
+    }
+  },
+  {
+    id: 2,
+    name: 'Glass ping',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C6, dur: 0.55, gain: 0.032, attack: 0.002, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.01, { freq: SOUND_NOTES.E5, dur: 0.42, gain: 0.018, attack: 0.004, type: 'sine' })
+      cueAirPuff(ac, master, t0, { freq: 3200, gain: 0.004, decay: 0.1, q: 1.4 })
+    }
+  },
+  {
+    id: 3,
+    name: 'Soft marimba',
+    play: (ac, master, t0) => {
+      cuePluck(ac, master, t0, { freqFrom: SOUND_NOTES.E5, freqTo: SOUND_NOTES.G5, gain: 0.03, decay: 0.14, glide: 0.08 })
+      cueBloom(ac, master, t0 + 0.04, { freq: SOUND_NOTES.C5, gain: 0.028, attack: 0.08, hold: 0.04, decay: 0.62 })
+      cueBloom(ac, master, t0 + 0.06, { freq: SOUND_NOTES.G4, gain: 0.014, attack: 0.12, hold: 0.06, decay: 0.55 })
+    }
+  },
+  {
+    id: 4,
+    name: 'Tri-tone message',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C6, dur: 0.14, gain: 0.045, attack: 0.004, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.1, { freq: SOUND_NOTES.A5, dur: 0.16, gain: 0.04, attack: 0.004, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.2, { freq: SOUND_NOTES.G5, dur: 0.22, gain: 0.035, attack: 0.006, type: 'sine' })
+    }
+  },
+  {
+    id: 5,
+    name: 'Airy whoosh',
+    play: (ac, master, t0) => {
+      cueWhoosh(ac, master, t0, { freqFrom: 4200, freqTo: 900, gain: 0.022, decay: 0.28, q: 0.7 })
+      cueVoice(ac, master, t0 + 0.12, { freq: SOUND_NOTES.A5, dur: 0.35, gain: 0.02, attack: 0.02, type: 'sine' })
+    }
+  },
+  {
+    id: 6,
+    name: 'Discovery cluster',
+    play: (ac, master, t0) => {
+      const clusterDetunes = [-14, -5, 0, 7, 12]
+      clusterDetunes.forEach((detune, i) => {
+        cueBloom(ac, master, t0 + i * 0.03, {
+          freq: SOUND_NOTES.A3, gain: 0.012, attack: 0.38, hold: 0.12, decay: 1.05, detune
+        })
+      })
+      cueBloom(ac, master, t0 + 0.1, { freq: SOUND_NOTES.E4, gain: 0.008, attack: 0.45, hold: 0.08, decay: 0.9, detune: 3 })
+    }
+  },
+  {
+    id: 7,
+    name: 'Systems online',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.C5, dur: 0.16, gain: 0.04, attack: 0.006, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.09, { freq: SOUND_NOTES.G5, dur: 0.28, gain: 0.042, attack: 0.008, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.09, { freq: SOUND_NOTES.C4, dur: 0.24, gain: 0.012, attack: 0.01, type: 'sine' })
+    }
+  },
+  {
+    id: 8,
+    name: 'IBM terminal',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.B5, dur: 0.12, gain: 0.038, attack: 0.002, type: 'square' })
+      cueVoice(ac, master, t0 + 0.14, { freq: SOUND_NOTES.E5, dur: 0.1, gain: 0.028, attack: 0.002, type: 'square' })
+    }
+  },
+  {
+    id: 9,
+    name: 'Modem chirp',
+    play: (ac, master, t0) => {
+      cueSweep(ac, master, t0, { freqFrom: 320, freqTo: 2200, gain: 0.024, decay: 0.16, type: 'triangle' })
+      cueSweep(ac, master, t0 + 0.1, { freqFrom: 480, freqTo: 1400, gain: 0.014, decay: 0.12, type: 'sine' })
+    }
+  },
+  {
+    id: 10,
+    name: 'Wind chimes',
+    play: (ac, master, t0) => {
+      const chimes = [SOUND_NOTES.G5, SOUND_NOTES.C6, SOUND_NOTES.E5, SOUND_NOTES.A5]
+      chimes.forEach((frequency, i) => {
+        cueVoice(ac, master, t0 + i * 0.13, {
+          freq: frequency, dur: 0.72, gain: 0.028 - i * 0.003, attack: 0.003, type: 'sine'
+        })
+      })
+    }
+  },
+  {
+    id: 11,
+    name: 'Singing bowl',
+    play: (ac, master, t0) => {
+      cueBloom(ac, master, t0, { freq: SOUND_NOTES.A3, gain: 0.022, attack: 0.58, hold: 0.16, decay: 1.35 })
+      cueBloom(ac, master, t0 + 0.08, { freq: SOUND_NOTES.E4, gain: 0.01, attack: 0.62, hold: 0.12, decay: 1.2, detune: 4 })
+      cueBloom(ac, master, t0 + 0.14, { freq: SOUND_NOTES.A4, gain: 0.006, attack: 0.68, hold: 0.08, decay: 1.05, detune: -3 })
+    }
+  },
+  {
+    id: 12,
+    name: 'Harp lift',
+    play: (ac, master, t0) => {
+      const notes = [SOUND_NOTES.C5, SOUND_NOTES.E5, SOUND_NOTES.G5, SOUND_NOTES.C6]
+      notes.forEach((frequency, i) => {
+        cueVoice(ac, master, t0 + i * 0.075, {
+          freq: frequency, dur: 0.38, gain: 0.034 - i * 0.004, attack: 0.012, type: 'sine'
+        })
+      })
+      cueBloom(ac, master, t0 + 0.2, { freq: SOUND_NOTES.C4, gain: 0.01, attack: 0.18, hold: 0.06, decay: 0.7 })
+    }
+  },
+  {
+    id: 13,
+    name: 'Sonar ping',
+    play: (ac, master, t0) => {
+      cueVoice(ac, master, t0, { freq: SOUND_NOTES.A2, dur: 0.95, gain: 0.036, attack: 0.008, type: 'sine' })
+      cueVoice(ac, master, t0 + 0.42, { freq: SOUND_NOTES.A3, dur: 0.55, gain: 0.014, attack: 0.01, type: 'sine' })
+      cueAirPuff(ac, master, t0, { freq: 600, gain: 0.005, decay: 0.2, q: 0.5 })
+    }
+  },
+  {
+    id: 14,
+    name: 'Music box',
+    play: (ac, master, t0) => {
+      const notes = [SOUND_NOTES.E6, SOUND_NOTES.C6, SOUND_NOTES.G5, SOUND_NOTES.E5]
+      notes.forEach((frequency, i) => {
+        cuePluck(ac, master, t0 + i * 0.09, {
+          freqFrom: frequency, freqTo: frequency * 0.998, gain: 0.02 - i * 0.002, decay: 0.2, glide: 0.06
+        })
+      })
+    }
+  }
+]
+
+// ── 响度归一化 ────────────────────────────────────────────────────────
+// 上面 14 个音效是照抄内置的原始配方，而它们的重叠峰值差异高达 17 dB
+// （最响 Two-note comfort 0.140，最轻 Airy whoosh 0.020）——所以同一档位下
+// 换音效会明显忽大忽小。下表是每个音效「同时发声的包络峰值之和」的最大值
+// （离线扫描所得，扫描脚本见插件仓库的 verification 说明），用它把每个音效
+// 提到最响音效的水平：换音效响度一致，且 9 倍档仍是同一绝对响度。
+const SOUND_RAW_PEAKS = {
+  1: 0.14, 2: 0.05, 3: 0.072, 4: 0.085, 5: 0.02, 6: 0.068, 7: 0.094,
+  8: 0.038, 9: 0.038, 10: 0.094, 11: 0.038, 12: 0.122, 13: 0.05, 14: 0.054
+}
+const SOUND_REFERENCE_PEAK = 0.14 // 最响音效（Two-note comfort）作为统一基准
+
+function soundNormGain(id) {
+  const peak = SOUND_RAW_PEAKS[id]
+  return peak && peak > 0 ? SOUND_REFERENCE_PEAK / peak : 1
+}
+
+// ── 音源：内置预设 / 自定义音频文件；以及「接管」内置音 ────────────────
+const SOUND_SOURCE_KEY = 'sound.source'          // 'preset' | 'custom'
+const SOUND_CUSTOM_PATH_KEY = 'sound.customPath'
+const SOUND_CUSTOM_NAME_KEY = 'sound.customName'
+const SOUND_TAKEOVER_KEY = 'sound.takeover'
+// app 的全局静音键（src/store/haptics.ts）：内置完成音、思考音、唤醒音、触觉反馈都看它。
+// 那个 atom 只在 app 启动时读一次 → 写完键必须重载窗口（Ctrl+R）才生效，面板要如实说明。
+const NATIVE_MUTE_KEY = 'hermes.desktop.hapticsMuted'
+
+function nativeSoundMuted() {
+  try {
+    return localStorage.getItem(NATIVE_MUTE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function writeNativeSoundMuted(on) {
+  try {
+    localStorage.setItem(NATIVE_MUTE_KEY, on ? 'true' : 'false')
+  } catch {}
+}
+
+let customBuffer = null
+let customLoadedPath = null
+let customPeak = 1
+
+// 读本地音频（桥的 data URL，默认上限 16 MiB）→ 解码 → 扫峰值。
+// 峰值用于归一化：自定义文件和内置预设走同一个基准（SOUND_REFERENCE_PEAK），
+// 所以同一档位下响度对得上，换文件不会突然炸耳或细如蚊呐。
+async function loadCustomSound(path) {
+  const desktop = window.hermesDesktop
+  if (!desktop || typeof desktop.readFileDataUrl !== 'function') {
+    throw new Error('desktop bridge unavailable')
+  }
+  const dataUrl = await desktop.readFileDataUrl(path)
+  const comma = String(dataUrl).indexOf(',')
+  const base64 = comma >= 0 ? String(dataUrl).slice(comma + 1) : String(dataUrl)
+  const bin = atob(base64)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i)
+  const ac = cueAudioContext()
+  if (!ac) throw new Error('no audio context')
+  const buffer = await ac.decodeAudioData(bytes.buffer)
+  let peak = 0
+  for (let c = 0; c < buffer.numberOfChannels; c += 1) {
+    const data = buffer.getChannelData(c)
+    for (let i = 0; i < data.length; i += 1) {
+      const v = data[i] < 0 ? -data[i] : data[i]
+      if (v > peak) peak = v
+    }
+  }
+  customBuffer = buffer
+  customPeak = peak > 0.0001 ? peak : 1
+  customLoadedPath = path
+  return buffer
+}
+
+function playCustomCue(step) {
+  const ac = cueAudioContext()
+  if (!ac || !customBuffer) return false
+  const source = ac.createBufferSource()
+  source.buffer = customBuffer
+  const gain = ac.createGain()
+  gain.gain.setValueAtTime(
+    SOUND_BASE_GAIN * SOUND_VOLUME_STEPS[resolveSoundStep(step)] * (SOUND_REFERENCE_PEAK / customPeak),
+    ac.currentTime
+  )
+  source.connect(gain)
+  gain.connect(ac.destination)
+  source.start()
+  return true
+}
+
+function customFileName(path) {
+  return String(path || '').split(/[\\/]/).pop() || ''
+}
+
+// 播放完成音：自定义优先，读不到就回退内置预设（绝不让用户静默丢音）
+async function playCompletionCue() {
+  if (!ctxRef || !ctxRef.storage.get(SOUND_KEY, false)) return
+  const step = ctxRef.storage.get(SOUND_VOLUME_KEY, SOUND_DEFAULT_STEP)
+  if (ctxRef.storage.get(SOUND_SOURCE_KEY, 'preset') === 'custom') {
+    const path = ctxRef.storage.get(SOUND_CUSTOM_PATH_KEY, '')
+    if (path) {
+      try {
+        if (!customBuffer || customLoadedPath !== path) await loadCustomSound(path)
+        if (playCustomCue(step)) return
+      } catch {}
+    }
+  }
+  playCue(ctxRef.storage.get(SOUND_VARIANT_KEY, 1), step)
+}
+
+function resolveSoundVariant(id) {
+  const v = Number(id)
+  return SOUND_VARIANTS.some((s) => s.id === v) ? v : 1
+}
+
+function resolveSoundStep(i) {
+  const v = Number(i)
+  return Number.isInteger(v) && v >= 0 && v < SOUND_VOLUME_STEPS.length ? v : SOUND_DEFAULT_STEP
+}
+
+// 播放链路与内置一致（voices → master → 低通 → dry + 混响湿声 → 输出），
+// 只有 master 增益换成「内置基准 × 档位」，所以 1× 与内置同响、4× 明显更响。
+let cueCtx = null
+
+function cueAudioContext() {
+  try {
+    if (!cueCtx) cueCtx = new (window.AudioContext || window.webkitAudioContext)()
+  } catch {
+    return null
+  }
+  if (cueCtx.state === 'suspended') cueCtx.resume().catch(() => {})
+  return cueCtx
+}
+
+function playCue(variantId, step) {
+  const ac = cueAudioContext()
+  if (!ac) return
+  const variant = SOUND_VARIANTS.find((s) => s.id === resolveSoundVariant(variantId))
+  if (!variant) return
+  const gainScale = SOUND_BASE_GAIN * SOUND_VOLUME_STEPS[resolveSoundStep(step)] * soundNormGain(variant.id)
+  const master = ac.createGain()
+  const tone = ac.createBiquadFilter()
+  tone.type = 'lowpass'
+  tone.frequency.setValueAtTime(3800, ac.currentTime)
+  tone.Q.setValueAtTime(0.32, ac.currentTime)
+  master.gain.setValueAtTime(gainScale, ac.currentTime)
+  master.connect(tone)
+  const dry = ac.createGain()
+  dry.gain.setValueAtTime(0.88, ac.currentTime)
+  tone.connect(dry)
+  dry.connect(ac.destination)
+  const reverb = cueReverb(ac)
+  const wet = ac.createGain()
+  wet.gain.setValueAtTime(0.34, ac.currentTime)
+  tone.connect(reverb)
+  reverb.connect(wet)
+  wet.connect(ac.destination)
+  variant.play(ac, master, ac.currentTime + 0.01)
 }
 
 // ── 悬浮输入框 atom 的静态源码指纹反解 ──────────────────────────────
@@ -1409,6 +2294,175 @@ function AppearancePanel() {
     } catch { return 'window' }
   })
   const [font, setFont] = useState(() => ctxRef.storage.get(FONT_KEY, false))
+  // ── 字体增强（搬自 legacy 仓库：界面/正文/代码/思考四类字体 + 字号 + 思考块外观）──
+  const [fontSettings, setFontSettingsState] = useState(() => readFontSettings())
+  const [fontExpanded, setFontExpanded] = useState(false)
+  // 本机字体列表（后端 /fonts 枚举成功后替换兜底预设；加载前用 FONT_PRESETS 预设）
+  const [sysFonts, setSysFonts] = useState([])
+  // 当前展开字体浏览列表的字段（'ui' | 'text' | 'code' | 'thinking' | null）
+  const [fontBrowseField, setFontBrowseField] = useState(null)
+  // FontField 的文案（组件模块级定义，拿不到 t()，由面板注入）
+  const fontLabels = {
+    browse: t('font.browse'), collapse: t('font.collapse'),
+    browseTitle: t('font.browse'), collapseTitle: t('font.collapse'),
+    familyPlaceholder: t('font.familyPlaceholder'), sizeTitle: t('font.sizeTitle')
+  }
+
+  const setFontSettings = (patch) => {
+    const next = { ...fontSettings, ...patch }
+    setFontSettingsState(next)
+    // 在 hub 里改界面字体 = 显式动作 → 归属拨回 hub（否则「让位官方」会静默吞掉这次选择）
+    if (Object.prototype.hasOwnProperty.call(patch, 'uiFont')) ctxRef.storage.set(FONT_WINNER_KEY, 'hub')
+    Object.entries(patch).forEach(([k, v]) => {
+      const key = {
+        uiFont: FONT_UI_KEY, uisize: FONT_UISIZE_KEY, textFont: FONT_TEXTFONT_KEY,
+        textSize: FONT_TEXTSIZE_KEY, codeFont: FONT_CODEFONT_KEY, codeSize: FONT_CODESIZE_KEY,
+        thinkingFont: FONT_THINKFONT_KEY, thinkSize: FONT_THINKSIZE_KEY,
+        thinkingColor: FONT_THINKCOLOR_KEY, thinkBox: FONT_THINKBOX_KEY, tabSize: FONT_TABSIZE_KEY,
+        thinkTint: FONT_THINKTINT_KEY,
+      }[k]
+      if (key) ctxRef.storage.set(key, v)
+    })
+    if (font) applyFont()
+  }
+
+  // 「底色浓度」滑杆：拖动中即时预览（只重建样式、不入库），停手 350ms 才落盘
+  const previewThinkTint = (v) => {
+    const pct = clampThinkTint(v)
+    setFontSettingsState((prev) => ({ ...prev, thinkTint: pct }))
+    if (font) applyFont({ thinkTint: pct })
+    if (thinkTintTimer) clearTimeout(thinkTintTimer)
+    thinkTintTimer = setTimeout(() => ctxRef.storage.set(FONT_THINKTINT_KEY, clampThinkTint(pct)), 350)
+  }
+  // 字体浏览列表字段 —— FontField 用
+  const toggleFontBrowse = (fieldKey) => {
+    setFontBrowseField((cur) => (cur === fieldKey ? null : fieldKey))
+  }
+
+  // 重置字体设置为默认
+  const resetFontSettings = () => {
+    setFontSettingsState({ ...FONT_DEFAULTS })
+    Object.entries(FONT_DEFAULTS).forEach(([k, v]) => {
+      const key = {
+        uiFont: FONT_UI_KEY, uisize: FONT_UISIZE_KEY, textFont: FONT_TEXTFONT_KEY,
+        textSize: FONT_TEXTSIZE_KEY, codeFont: FONT_CODEFONT_KEY, codeSize: FONT_CODESIZE_KEY,
+        thinkingFont: FONT_THINKFONT_KEY, thinkSize: FONT_THINKSIZE_KEY,
+        thinkingColor: FONT_THINKCOLOR_KEY, thinkBox: FONT_THINKBOX_KEY, tabSize: FONT_TABSIZE_KEY,
+        thinkTint: FONT_THINKTINT_KEY,
+      }[k]
+      if (key) ctxRef.storage.set(key, v)
+    })
+    if (font) applyFont()
+    haptic('tap')
+  }
+
+  // 本机字体列表（后端 /fonts 枚举，供「浏览…」下拉；失败回落 FONT_PRESETS 预设）
+  useEffect(() => {
+    if (ctxRef && typeof ctxRef.rest === 'function') {
+      ctxRef.rest('/fonts')
+        .then((res) => {
+          if (res && Array.isArray(res.fonts) && res.fonts.length) setSysFonts(res.fonts)
+        })
+        .catch(() => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 完成提示音（P1：内置预设 + 音量档位 + 试听；自定义文件与「接管静音内置音」见后续阶段）
+  const [soundOn, setSoundOn] = useState(() => ctxRef.storage.get(SOUND_KEY, false))
+  const [soundVariant, setSoundVariantState] = useState(() =>
+    resolveSoundVariant(ctxRef.storage.get(SOUND_VARIANT_KEY, 1)))
+  const [soundStep, setSoundStepState] = useState(() =>
+    resolveSoundStep(ctxRef.storage.get(SOUND_VOLUME_KEY, SOUND_DEFAULT_STEP)))
+  const [soundSource, setSoundSourceState] = useState(() =>
+    ctxRef.storage.get(SOUND_SOURCE_KEY, 'preset') === 'custom' ? 'custom' : 'preset')
+  const [customName, setCustomNameState] = useState(() => ctxRef.storage.get(SOUND_CUSTOM_NAME_KEY, ''))
+  const [takeover, setTakeoverState] = useState(() => ctxRef.storage.get(SOUND_TAKEOVER_KEY, false))
+  const toggleSound = (next) => {
+    setSoundOn(next)
+    ctxRef.storage.set(SOUND_KEY, next)
+    haptic('tap')
+  }
+  // 换音效即试听（与 Hermes 设置里的交互一致）
+  const setSoundVariant = (id) => {
+    const v = resolveSoundVariant(id)
+    setSoundVariantState(v)
+    ctxRef.storage.set(SOUND_VARIANT_KEY, v)
+    playCue(v, soundStep)
+  }
+  const setSoundStep = (id) => {
+    const s = resolveSoundStep(id)
+    setSoundStepState(s)
+    ctxRef.storage.set(SOUND_VOLUME_KEY, s)
+    previewSound()
+    haptic('tap')
+  }
+  const setSoundSource = (id) => {
+    const v = id === 'custom' ? 'custom' : 'preset'
+    setSoundSourceState(v)
+    ctxRef.storage.set(SOUND_SOURCE_KEY, v)
+    haptic('tap')
+  }
+  // 试听：自定义文件按需解码（首次读盘 + 扫峰值），失败走 toast 提示
+  const previewSound = () => {
+    if (soundSource !== 'custom') {
+      playCue(soundVariant, soundStep)
+      return
+    }
+    const path = ctxRef.storage.get(SOUND_CUSTOM_PATH_KEY, '')
+    if (!path) {
+      host.notify({ kind: 'info', message: t('sound.none') })
+      return
+    }
+    loadCustomSound(path)
+      .then(() => playCustomCue(soundStep))
+      .catch((e) => host.notify({ kind: 'error', message: t('sound.loadFailed') + ' ' + (e && e.message) }))
+  }
+  const pickCustomSound = async () => {
+    try {
+      const desktop = window.hermesDesktop
+      if (!desktop || typeof desktop.selectPaths !== 'function') {
+        throw new Error('desktop bridge unavailable')
+      }
+      const picked = await desktop.selectPaths({
+        filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'] }],
+        multiple: false,
+        title: t('sound.soundPickTitle')
+      })
+      const path = picked && picked[0]
+      if (!path) return
+      await loadCustomSound(path)
+      const name = customFileName(path)
+      ctxRef.storage.set(SOUND_CUSTOM_PATH_KEY, path)
+      ctxRef.storage.set(SOUND_CUSTOM_NAME_KEY, name)
+      ctxRef.storage.set(SOUND_SOURCE_KEY, 'custom')
+      setSoundSourceState('custom')
+      setCustomNameState(name)
+      playCustomCue(soundStep)
+      haptic('crisp')
+    } catch (e) {
+      host.notify({ kind: 'error', message: t('sound.loadFailed') + ' ' + (e && e.message) })
+    }
+  }
+  const clearCustomSound = () => {
+    customBuffer = null
+    customLoadedPath = null
+    customPeak = 1
+    ctxRef.storage.set(SOUND_CUSTOM_PATH_KEY, '')
+    ctxRef.storage.set(SOUND_CUSTOM_NAME_KEY, '')
+    setCustomNameState('')
+    haptic('tap')
+  }
+  // 接管 = 写 app 的全局静音键（内置完成音/思考音/唤醒音/触觉一起静）。
+  // app 的 atom 只在启动时读一次 → 必须 Ctrl+R 才生效，面板如实提示。
+  const toggleTakeover = (next) => {
+    setTakeoverState(next)
+    ctxRef.storage.set(SOUND_TAKEOVER_KEY, next)
+    writeNativeSoundMuted(next)
+    if (next && !soundOn) toggleSound(true)
+    haptic('tap')
+  }
+
   const [zoom, setZoomState] = useState(() => '90')
   const [introOn, setIntroOn] = useState(() => {
     try { return localStorage.getItem(INTRO_NATIVE_KEY) !== 'false' } catch { return true }
@@ -1729,19 +2783,177 @@ function AppearancePanel() {
         ]
       }),
 
-      // 字体
-      // 字体（关/开；无图标无简介，hover→说明带）
-      jsx(BehaviorRow, {
-        title: t('font.title'),
-        options: [
-          { id: 'off', label: t('intro.off') },
-          { id: 'on', label: t('intro.on') }
-        ],
-        value: font ? 'on' : 'off',
-        onChange: (id) => toggleFont(id === 'on'),
-        stacked: stackedLayout,
-        onEnter: () => hover('font.desc')
-      }),
+      // 字体（总开关 + 展开式定制：界面/正文/代码/思考字体 + 字号、思考块外观、标签栏字号）
+      // 区块与 v3 同风格：无图标 + hover→说明带；展开区沿用 legacy 的表单行
+      jsxs('div', {
+        onMouseEnter: () => hover('font.desc'),
+        className: 'flex flex-col gap-1 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
+        children: [
+          jsxs('div', {
+            className: 'flex items-center gap-2.5',
+            children: [
+              jsx('div', {
+                className: 'min-w-0 flex-1 cursor-pointer text-[0.75rem] leading-tight',
+                onClick: () => setFontExpanded((v) => !v),
+                children: t('font.title')
+              }, 'font-title'),
+              jsx(SegmentedControl, {
+                options: [
+                  { id: 'off', label: t('intro.off') },
+                  { id: 'on', label: t('intro.on') }
+                ],
+                value: font ? 'on' : 'off',
+                onChange: (id) => toggleFont(id === 'on'),
+                style: { width: '150px', flexShrink: 0 },
+                'aria-label': t('font.title')
+              }, 'font-toggle')
+            ]
+          }, 'font-head'),
+          // 展开区：总开关开启时显示全部定制项
+          font && fontExpanded &&
+            jsxs('div', {
+              className: 'flex flex-col gap-1.5',
+              children: [
+                jsx(FontField, {
+                  label: t('font.ui'),
+                  fieldKey: 'ui',
+                  value: fontSettings.uiFont,
+                  onChange: (v) => setFontSettings({ uiFont: v }),
+                  sizeValue: fontSettings.uisize,
+                  onSizeChange: (v) => setFontSettings({ uisize: v }),
+                  sizeEmptyLabel: t('font.sizeBase'),
+                  sysFonts,
+                  browseField: fontBrowseField,
+                  onToggleBrowse: toggleFontBrowse,
+                  labels: fontLabels
+                }, 'font-field-ui'),
+                jsx(FontField, {
+                  label: t('font.text'),
+                  fieldKey: 'text',
+                  value: fontSettings.textFont,
+                  onChange: (v) => setFontSettings({ textFont: v }),
+                  sizeValue: fontSettings.textSize,
+                  onSizeChange: (v) => setFontSettings({ textSize: v }),
+                  sizeEmptyLabel: t('font.sizeFollowUI'),
+                  sysFonts,
+                  browseField: fontBrowseField,
+                  onToggleBrowse: toggleFontBrowse,
+                  labels: fontLabels
+                }, 'font-field-text'),
+                jsxs('div', {
+                  className: 'flex items-center justify-between gap-2',
+                  children: [
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.tabSize') }, 'font-tab-label'),
+                    jsx('select', {
+                      value: fontSettings.tabSize,
+                      title: t('font.tabSize'),
+                      className:
+                        'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+                      onChange: (e) => setFontSettings({ tabSize: e.target.value }),
+                      children: [
+                        jsx('option', { value: '', children: t('font.sizeDefault') }, ''),
+                        ...FONT_SIZES.map((id) => jsx('option', { value: id, children: `${id}px` }, id))
+                      ]
+                    }, 'font-tab-select')
+                  ]
+                }, 'font-tab-row'),
+                jsx(FontField, {
+                  label: t('font.code'),
+                  fieldKey: 'code',
+                  value: fontSettings.codeFont,
+                  onChange: (v) => setFontSettings({ codeFont: v }),
+                  sizeValue: fontSettings.codeSize,
+                  onSizeChange: (v) => setFontSettings({ codeSize: v }),
+                  sizeEmptyLabel: t('font.sizeFollowBody'),
+                  sysFonts,
+                  browseField: fontBrowseField,
+                  onToggleBrowse: toggleFontBrowse,
+                  labels: fontLabels
+                }, 'font-field-code'),
+                jsx(FontField, {
+                  label: t('font.thinking'),
+                  fieldKey: 'thinking',
+                  value: fontSettings.thinkingFont,
+                  onChange: (v) => setFontSettings({ thinkingFont: v }),
+                  sizeValue: fontSettings.thinkSize,
+                  onSizeChange: (v) => setFontSettings({ thinkSize: v }),
+                  sizeEmptyLabel: t('font.sizeFollowBody'),
+                  sysFonts,
+                  browseField: fontBrowseField,
+                  onToggleBrowse: toggleFontBrowse,
+                  labels: fontLabels
+                }, 'font-field-thinking'),
+                jsxs('div', {
+                  className: 'flex flex-col gap-1',
+                  children: [
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkColor') }, 'font-color-label'),
+                    jsxs('select', {
+                      value: fontSettings.thinkingColor,
+                      className:
+                        'rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-2 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+                      onChange: (e) => setFontSettings({ thinkingColor: e.target.value }),
+                      children: FONT_COLORS.map((c) => jsx('option', { value: c.id, children: t(c.labelKey) }, c.id))
+                    }, 'font-color-select')
+                  ]
+                }, 'font-color-row'),
+                jsxs('div', {
+                  className: 'flex items-center justify-between gap-2',
+                  children: [
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkBox') }, 'font-box-label'),
+                    jsx('select', {
+                      value: fontSettings.thinkBox,
+                      className:
+                        'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
+                      onChange: (e) => setFontSettings({ thinkBox: e.target.value }),
+                      children: THINK_BOX_STYLES.map((id) =>
+                        jsx('option', {
+                          value: id,
+                          children: t('font.thinkBox' + id.charAt(0).toUpperCase() + id.slice(1))
+                        }, id)
+                      )
+                    }, 'font-box-select')
+                  ]
+                }, 'font-box-row'),
+                (fontSettings.thinkBox === 'tint' || fontSettings.thinkBox === 'rail') &&
+                  jsxs('div', {
+                    className: 'flex flex-col gap-1',
+                    children: [
+                      jsxs('div', {
+                        className: 'flex items-center justify-between gap-2',
+                        children: [
+                          jsx('label', {
+                            className: 'text-xs font-medium text-(--ui-text-secondary)',
+                            children: t('font.tintStrength')
+                          }, 'font-tint-label'),
+                          jsx('span', {
+                            className: 'shrink-0 text-xs tabular-nums text-(--ui-text-secondary)',
+                            children: String(fontSettings.thinkTint)
+                          }, 'font-tint-value')
+                        ]
+                      }, 'font-tint-head'),
+                      jsx('input', {
+                        type: 'range',
+                        min: 0,
+                        max: THINK_TINT_MAX,
+                        step: 1,
+                        value: fontSettings.thinkTint,
+                        'aria-label': t('font.tintStrength'),
+                        className: 'w-full accent-(--ui-accent)',
+                        onChange: (e) => previewThinkTint(Number(e.target.value))
+                      }, 'font-tint-range')
+                    ]
+                  }, 'font-tint-row'),
+                jsx('button', {
+                  type: 'button',
+                  className:
+                    'mt-0.5 self-start rounded-md border border-(--ui-stroke-secondary) px-2 py-1 text-xs text-(--ui-text-secondary) transition-colors hover:border-(--ui-destructive) hover:text-(--ui-destructive)',
+                  onClick: resetFontSettings,
+                  children: t('font.reset')
+                }, 'font-reset')
+              ]
+            }, 'font-expand')
+        ]
+      }, 'font-block'),
 
       // 纸纹（开关 + 配方同属一个悬浮高亮容器）
       jsxs('div', {
@@ -2090,6 +3302,141 @@ function AppearancePanel() {
         onEnter: () => hover('behavior.appActionsDesc')
       }),
 
+      // 完成提示音（移植自 legacy 仓库：14 音效 + 自定义音频 + 音量档 + 接管内置音）
+      jsxs('div', {
+        onMouseEnter: () => hover('sound.desc'),
+        className: 'flex flex-col gap-1.5 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
+        children: [
+          jsxs('div', {
+            className: 'flex items-center gap-2.5',
+            children: [
+              jsx('div', { className: 'min-w-0 flex-1 text-[0.75rem] leading-tight', children: t('sound.title') }, 'sound-title'),
+              jsx(SegmentedControl, {
+                options: [
+                  { id: 'off', label: t('sound.off') },
+                  { id: 'on', label: t('sound.on') }
+                ],
+                value: soundOn ? 'on' : 'off',
+                onChange: (id) => toggleSound(id === 'on'),
+                style: { width: '150px', flexShrink: 0 },
+                'aria-label': t('sound.title')
+              }, 'sound-toggle')
+            ]
+          }, 'sound-head'),
+          jsx(ControlRow, {
+            label: t('sound.source'),
+            children: jsx(SegmentedControl, {
+              options: [
+                { id: 'preset', label: t('sound.sourcePreset') },
+                { id: 'custom', label: t('sound.sourceCustom') }
+              ],
+              value: soundSource,
+              onChange: setSoundSource,
+              className: 'w-full'
+            })
+          }, 'sound-source'),
+          soundSource === 'preset'
+            ? jsx(ControlRow, {
+                label: t('sound.preset'),
+                children: jsxs('div', {
+                  className: 'flex min-w-0 items-center gap-2',
+                  children: [
+                    jsx('select', {
+                      value: String(soundVariant),
+                      onChange: (e) => setSoundVariant(Number(e.target.value)),
+                      className: 'h-7 min-w-0 flex-1 cursor-pointer rounded-md px-1.5 text-[0.6875rem]',
+                      style: SOUND_SELECT_STYLE,
+                      'aria-label': t('sound.preset'),
+                      children: SOUND_VARIANTS.map((v) =>
+                        jsx('option', { value: String(v.id), children: v.name }, v.id))
+                    }, 'sound-select'),
+                    jsx('div', {
+                      className: SOUND_BTN_CLASS,
+                      style: SOUND_BTN_STYLE,
+                      onClick: () => { playCue(soundVariant, soundStep); haptic('crisp') },
+                      role: 'button',
+                      children: [jsx(icons.Play, { className: 'size-3' }, 'ico'), t('sound.preview')]
+                    }, 'sound-preview-btn')
+                  ]
+                })
+              }, 'sound-preset-row')
+            : jsxs('div', {
+                className: 'flex flex-col gap-1.5',
+                children: [
+                  jsx(ControlRow, {
+                    label: t('sound.sourceCustom'),
+                    children: jsx('div', {
+                      className: 'truncate text-[0.6875rem] leading-tight text-(--ui-text-secondary)',
+                      title: customName || t('sound.none'),
+                      children: customName || t('sound.none')
+                    })
+                  }, 'sound-custom-name'),
+                  jsx(ControlRow, {
+                    label: '',
+                    children: jsxs('div', {
+                      className: 'flex flex-wrap items-center gap-2',
+                      children: [
+                        jsx('div', {
+                          className: SOUND_BTN_CLASS,
+                          style: SOUND_BTN_STYLE,
+                          onClick: () => { void pickCustomSound() },
+                          role: 'button',
+                          children: [jsx(icons.FolderOpen, { className: 'size-3' }, 'ico'), t('sound.pick')]
+                        }, 'sound-pick'),
+                        jsx('div', {
+                          className: SOUND_BTN_CLASS,
+                          style: SOUND_BTN_STYLE,
+                          onClick: () => { previewSound(); haptic('crisp') },
+                          role: 'button',
+                          children: [jsx(icons.Play, { className: 'size-3' }, 'ico'), t('sound.preview')]
+                        }, 'sound-preview'),
+                        customName &&
+                          jsx('div', {
+                            className: SOUND_BTN_CLASS,
+                            style: SOUND_BTN_STYLE,
+                            onClick: clearCustomSound,
+                            role: 'button',
+                            children: [jsx(icons.Trash2, { className: 'size-3' }, 'ico'), t('sound.clear')]
+                          }, 'sound-clear')
+                      ]
+                    })
+                  }, 'sound-custom-actions')
+                ]
+              }, 'sound-custom-block'),
+          jsx(ControlRow, {
+            label: t('sound.volume'),
+            children: jsx(SegmentedControl, {
+              options: SOUND_VOLUME_OPTIONS,
+              value: String(soundStep),
+              onChange: setSoundStep,
+              className: 'w-full'
+            })
+          }, 'sound-volume'),
+          jsx(ControlRow, {
+            label: t('sound.takeover'),
+            children: jsx(SegmentedControl, {
+              options: [
+                { id: 'off', label: t('sound.takeoverOff') },
+                { id: 'on', label: t('sound.takeoverOn') }
+              ],
+              value: takeover ? 'on' : 'off',
+              onChange: (id) => toggleTakeover(id === 'on'),
+              className: 'w-full'
+            })
+          }, 'sound-takeover'),
+          takeover &&
+            jsx('div', {
+              className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
+              children: t('sound.takeoverNote')
+            }, 'sound-takeover-note'),
+          soundOn &&
+            jsx('div', {
+              className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
+              children: t('sound.note')
+            }, 'sound-note')
+        ]
+      }),
+
       // 底部说明带：左=悬停联动（空载显示占位 tip），右=界面缩放（悬停缩放条也联动）
       jsxs('div', {
         className: 'mt-1 flex items-center gap-2 border-t border-(--ui-stroke-secondary) px-2 pt-2',
@@ -2116,10 +3463,10 @@ function AppearancePanel() {
       })
     ]
   // 区块索引：0=标题 1=主题 2=字体 3=纸纹 4=标签栏 5=密度 6=消息气泡 7=聊天背景 8=窗口透明
-  //          9=开场标识 10-14=行为五件套（工具/推理/内嵌/悬浮框/应用操作） 15=底部提示+缩放
+  //          9=开场标识 10-14=行为五件套（工具/推理/内嵌/悬浮框/应用操作） 15=完成提示音 16=底部提示+缩放
   const [secTitle, secTheme, secFont, secPaper, secTabStrip, secDensity, secBubble, secBackdrop,
          secTranslucency, secIntro, secToolView, secReasoning, secEmbeds, secPopout,
-         secAppActions, secFooter] = secChildren
+         secAppActions, secSound, secFooter] = secChildren
 
   // 双栏（唯一布局）：标题通栏 + 左右两列 + 底部提示
   return jsxs('div', {
@@ -2130,12 +3477,12 @@ function AppearancePanel() {
       jsxs('div', {
         className: 'flex flex-row',
         children: [
-          // 左列：主题 → 聊天背景 → 悬浮输入框 → 折叠推理 → 应用操作 → 工具调用 → 内嵌预览 → 标签栏 → 密度
+          // 左列：主题 → 聊天背景 → 悬浮输入框 → 折叠推理 → 应用操作 → 工具调用 → 内嵌预览 → 标签栏 → 密度 → 完成提示音
           jsxs('div', {
             className: 'flex min-w-0 flex-1 flex-col',
             style: { paddingRight: '12px' },
             children: [secTheme, secBackdrop, secPopout, secReasoning, secAppActions,
-                      secToolView, secEmbeds, secTabStrip, secDensity]
+                      secToolView, secEmbeds, secTabStrip, secDensity, secSound]
           }),
           // 右列：消息气泡 → 窗口透明 → 霞鹜文楷 → 纸纹模拟 → 开场标识（pl 内联，与左列对称）
           jsxs('div', {
@@ -2167,6 +3514,8 @@ export default {
       // 按持久化状态初始化。纸纹默认开（原插件继承），字体默认关（v3.1：官方已有
       // 聊天字体自定义，一键策展不默认劫持；老用户存档不受影响，仅新装机默认翻转）
       if (ctx.storage.get(PAPER_KEY, true)) injectPaper()
+      // ui-beautify（maple-ui-font-settings）旧键一次性迁移：幂等，迁完即删键
+      migrateLegacyFontSettings()
       if (ctx.storage.get(FONT_KEY, false)) applyFont()
       // 官方聊天字体编辑监听常驻：开关开着时官方 inline 变化 → applyFont 让位/恢复
       watchOfficialChatFont()
@@ -2197,6 +3546,10 @@ export default {
       // 挂模块级常驻监听：与弹窗开关无关，保证 Settings / View 菜单 / Cmd± 改缩放时
       // 反向同步（哪怕 hub 弹窗此刻没开，下次打开也已是最新值）。
       startNativeZoomWatch()
+      // 完成提示音：插件自己播（与 app 内置音并存，面板「接管」开关可静音内置音）
+      const offCue = host.onEvent('message.complete', () => {
+        void playCompletionCue().catch(() => {})
+      })
       // 预热官方 store 识别（后台异步，启动时闪烁不可见）：
       // 避免用户首次点聊天背景时键验证法探测导致开场标识闪动
       loadOfficialStores().catch(() => {})
@@ -2212,6 +3565,7 @@ export default {
         zoomUnsubscribeNative = null
         zoomSubscribers.clear()
         disposeI18n()
+        offCue()
         ctxRef = null
       })
 
