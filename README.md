@@ -1,4 +1,6 @@
-# Hermes Appearance Hub ![版本](https://img.shields.io/badge/版本-v3.2.0-blue)
+# Hermes Appearance Hub ![版本](https://img.shields.io/badge/版本-v3.3.0-blue)
+
+> 本仓库是 [Heybinshao/hermes-appearance-hub](https://github.com/Heybinshao/hermes-appearance-hub) 的 fork（`bbvdf`），在上游 v3.2 面板上并入了作者自有插件 [`hermes-appearance-hub-legacy`](https://github.com/bbvdf/hermes-appearance-hub-legacy) 的两块能力：**字体增强**（四类字体 + 字号 + 思考块外观）与**完成提示音**。
 
 给 Hermes 桌面端用的**外观整合插件**：把散在官方设置页各处的外观与对话行为开关，连同纸纹模拟、霞鹜文楷、Binshao 主题等独有能力，收进状态栏一个浮窗——悬停即见说明，改动即时生效，省掉翻设置页的路径。
 
@@ -9,6 +11,8 @@
 - 双栏面板 · 每行只留标题，悬停即见简介（底部说明带）
 - 主题（12 个，含 Binshao 暖纸）· 语言简/繁/EN · 霞鹜文楷 · 纸纹模拟 · 界面缩放
 - 聊天背景 · 消息气泡 · 窗口透明 · 开场标识 · 对话行为五件套（工具调用显示 / 折叠推理 / 内嵌预览 / 悬浮输入框 / 应用操作）
+- **字体增强**：界面 / 正文 / 代码 / 思考四类字体自由选择（后端 `/fonts` 枚举本机字体）+ 字号档位 12–22px + 思考块外形四档与底色浓度滑杆 + 标签栏字号；与上游「最后动作胜」仲裁共存
+- **完成提示音**：14 个内置音效 + 自定义音频文件 + 响度归一化（1/3/6/9 倍音量）+ 接管静音 Hermes 内置提示音
 - 设置持久化，卸载清理注入、不留残留
 
 ## 界面预览
