@@ -15,6 +15,15 @@
 - **完成提示音**：14 个内置音效 + 自定义音频文件 + 响度归一化（1/3/6/9 倍音量）+ 接管静音 Hermes 内置提示音
 - 设置持久化，卸载清理注入、不留残留
 
+## 本地验证（不用启动桌面端）
+
+```bash
+npm i && node tests/setup.mjs && npm test
+```
+
+用 jsdom + react-dom 直接加载 `desktop/plugin.js`：`tests/smoke.mjs` 覆盖加载/注册/首屏渲染/
+`message.complete`/卸载，`tests/expand.mjs` 覆盖字体展开区与自定义音源分支。细节见 `tests/README.md`。
+
 ## 界面预览
 
 ### 外观浮窗

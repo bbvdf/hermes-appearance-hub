@@ -879,8 +879,8 @@ const FontField = ({ label, value, onChange, fieldKey, sizeValue, onSizeChange, 
               'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
             onChange: (e) => onSizeChange(e.target.value),
             children: [
-              sizeEmptyLabel && jsx('option', { key: '', value: '', children: sizeEmptyLabel }),
-              ...FONT_SIZES.map((id) => jsx('option', { key: id, value: id, children: `${id}px` })),
+              sizeEmptyLabel && jsx('option', { value: '', children: sizeEmptyLabel }, ''),
+              ...FONT_SIZES.map((id) => jsx('option', { value: id, children: `${id}px` }, id)),
             ],
           }),
         ],
@@ -891,7 +891,6 @@ const FontField = ({ label, value, onChange, fieldKey, sizeValue, onSizeChange, 
             'max-h-40 overflow-auto overscroll-contain rounded-md border border-(--ui-stroke-secondary) py-0.5',
           children: fontList.map((f) =>
             jsx('button', {
-              key: f,
               type: 'button',
               className:
                 'block w-full truncate px-2 py-0.5 text-left text-xs text-(--ui-text-secondary) transition-colors hover:bg-(--ui-accent) hover:text-foreground',
@@ -900,7 +899,7 @@ const FontField = ({ label, value, onChange, fieldKey, sizeValue, onSizeChange, 
                 onToggleBrowse(null)
               },
               children: f,
-            })
+            }, f)
           ),
         }),
     ],
@@ -2797,7 +2796,7 @@ function AppearancePanel() {
                 className: 'min-w-0 flex-1 cursor-pointer text-[0.75rem] leading-tight',
                 onClick: () => setFontExpanded((v) => !v),
                 children: t('font.title')
-              }),
+              }, 'font-title'),
               jsx(SegmentedControl, {
                 options: [
                   { id: 'off', label: t('intro.off') },
@@ -2807,9 +2806,9 @@ function AppearancePanel() {
                 onChange: (id) => toggleFont(id === 'on'),
                 style: { width: '150px', flexShrink: 0 },
                 'aria-label': t('font.title')
-              })
+              }, 'font-toggle')
             ]
-          }),
+          }, 'font-head'),
           // 展开区：总开关开启时显示全部定制项
           font && fontExpanded &&
             jsxs('div', {
@@ -2827,7 +2826,7 @@ function AppearancePanel() {
                   browseField: fontBrowseField,
                   onToggleBrowse: toggleFontBrowse,
                   labels: fontLabels
-                }),
+                }, 'font-field-ui'),
                 jsx(FontField, {
                   label: t('font.text'),
                   fieldKey: 'text',
@@ -2840,11 +2839,11 @@ function AppearancePanel() {
                   browseField: fontBrowseField,
                   onToggleBrowse: toggleFontBrowse,
                   labels: fontLabels
-                }),
+                }, 'font-field-text'),
                 jsxs('div', {
                   className: 'flex items-center justify-between gap-2',
                   children: [
-                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.tabSize') }),
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.tabSize') }, 'font-tab-label'),
                     jsx('select', {
                       value: fontSettings.tabSize,
                       title: t('font.tabSize'),
@@ -2852,12 +2851,12 @@ function AppearancePanel() {
                         'shrink-0 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-1 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
                       onChange: (e) => setFontSettings({ tabSize: e.target.value }),
                       children: [
-                        jsx('option', { key: '', value: '', children: t('font.sizeDefault') }),
-                        ...FONT_SIZES.map((id) => jsx('option', { key: id, value: id, children: `${id}px` }))
+                        jsx('option', { value: '', children: t('font.sizeDefault') }, ''),
+                        ...FONT_SIZES.map((id) => jsx('option', { value: id, children: `${id}px` }, id))
                       ]
-                    })
+                    }, 'font-tab-select')
                   ]
-                }),
+                }, 'font-tab-row'),
                 jsx(FontField, {
                   label: t('font.code'),
                   fieldKey: 'code',
@@ -2870,7 +2869,7 @@ function AppearancePanel() {
                   browseField: fontBrowseField,
                   onToggleBrowse: toggleFontBrowse,
                   labels: fontLabels
-                }),
+                }, 'font-field-code'),
                 jsx(FontField, {
                   label: t('font.thinking'),
                   fieldKey: 'thinking',
@@ -2883,24 +2882,24 @@ function AppearancePanel() {
                   browseField: fontBrowseField,
                   onToggleBrowse: toggleFontBrowse,
                   labels: fontLabels
-                }),
+                }, 'font-field-thinking'),
                 jsxs('div', {
                   className: 'flex flex-col gap-1',
                   children: [
-                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkColor') }),
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkColor') }, 'font-color-label'),
                     jsxs('select', {
                       value: fontSettings.thinkingColor,
                       className:
                         'rounded-md border border-(--ui-stroke-secondary) bg-(--ui-input-bg) px-2 py-1 text-xs text-foreground outline-none focus:border-(--ui-accent)',
                       onChange: (e) => setFontSettings({ thinkingColor: e.target.value }),
-                      children: FONT_COLORS.map((c) => jsx('option', { key: c.id, value: c.id, children: t(c.labelKey) }))
-                    })
+                      children: FONT_COLORS.map((c) => jsx('option', { value: c.id, children: t(c.labelKey) }, c.id))
+                    }, 'font-color-select')
                   ]
-                }),
+                }, 'font-color-row'),
                 jsxs('div', {
                   className: 'flex items-center justify-between gap-2',
                   children: [
-                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkBox') }),
+                    jsx('label', { className: 'text-xs font-medium text-(--ui-text-secondary)', children: t('font.thinkBox') }, 'font-box-label'),
                     jsx('select', {
                       value: fontSettings.thinkBox,
                       className:
@@ -2908,14 +2907,13 @@ function AppearancePanel() {
                       onChange: (e) => setFontSettings({ thinkBox: e.target.value }),
                       children: THINK_BOX_STYLES.map((id) =>
                         jsx('option', {
-                          key: id,
                           value: id,
                           children: t('font.thinkBox' + id.charAt(0).toUpperCase() + id.slice(1))
-                        })
+                        }, id)
                       )
-                    })
+                    }, 'font-box-select')
                   ]
-                }),
+                }, 'font-box-row'),
                 (fontSettings.thinkBox === 'tint' || fontSettings.thinkBox === 'rail') &&
                   jsxs('div', {
                     className: 'flex flex-col gap-1',
@@ -2926,13 +2924,13 @@ function AppearancePanel() {
                           jsx('label', {
                             className: 'text-xs font-medium text-(--ui-text-secondary)',
                             children: t('font.tintStrength')
-                          }),
+                          }, 'font-tint-label'),
                           jsx('span', {
                             className: 'shrink-0 text-xs tabular-nums text-(--ui-text-secondary)',
                             children: String(fontSettings.thinkTint)
-                          })
+                          }, 'font-tint-value')
                         ]
-                      }),
+                      }, 'font-tint-head'),
                       jsx('input', {
                         type: 'range',
                         min: 0,
@@ -2942,20 +2940,20 @@ function AppearancePanel() {
                         'aria-label': t('font.tintStrength'),
                         className: 'w-full accent-(--ui-accent)',
                         onChange: (e) => previewThinkTint(Number(e.target.value))
-                      })
+                      }, 'font-tint-range')
                     ]
-                  }),
+                  }, 'font-tint-row'),
                 jsx('button', {
                   type: 'button',
                   className:
                     'mt-0.5 self-start rounded-md border border-(--ui-stroke-secondary) px-2 py-1 text-xs text-(--ui-text-secondary) transition-colors hover:border-(--ui-destructive) hover:text-(--ui-destructive)',
                   onClick: resetFontSettings,
                   children: t('font.reset')
-                })
+                }, 'font-reset')
               ]
-            })
+            }, 'font-expand')
         ]
-      }),
+      }, 'font-block'),
 
       // 纸纹（开关 + 配方同属一个悬浮高亮容器）
       jsxs('div', {
@@ -3312,7 +3310,7 @@ function AppearancePanel() {
           jsxs('div', {
             className: 'flex items-center gap-2.5',
             children: [
-              jsx('div', { className: 'min-w-0 flex-1 text-[0.75rem] leading-tight', children: t('sound.title') }),
+              jsx('div', { className: 'min-w-0 flex-1 text-[0.75rem] leading-tight', children: t('sound.title') }, 'sound-title'),
               jsx(SegmentedControl, {
                 options: [
                   { id: 'off', label: t('sound.off') },
@@ -3322,9 +3320,9 @@ function AppearancePanel() {
                 onChange: (id) => toggleSound(id === 'on'),
                 style: { width: '150px', flexShrink: 0 },
                 'aria-label': t('sound.title')
-              })
+              }, 'sound-toggle')
             ]
-          }),
+          }, 'sound-head'),
           jsx(ControlRow, {
             label: t('sound.source'),
             children: jsx(SegmentedControl, {
@@ -3336,7 +3334,7 @@ function AppearancePanel() {
               onChange: setSoundSource,
               className: 'w-full'
             })
-          }),
+          }, 'sound-source'),
           soundSource === 'preset'
             ? jsx(ControlRow, {
                 label: t('sound.preset'),
@@ -3351,17 +3349,17 @@ function AppearancePanel() {
                       'aria-label': t('sound.preset'),
                       children: SOUND_VARIANTS.map((v) =>
                         jsx('option', { value: String(v.id), children: v.name }, v.id))
-                    }),
+                    }, 'sound-select'),
                     jsx('div', {
                       className: SOUND_BTN_CLASS,
                       style: SOUND_BTN_STYLE,
                       onClick: () => { playCue(soundVariant, soundStep); haptic('crisp') },
                       role: 'button',
-                      children: [jsx(icons.Play, { className: 'size-3' }), t('sound.preview')]
-                    })
+                      children: [jsx(icons.Play, { className: 'size-3' }, 'ico'), t('sound.preview')]
+                    }, 'sound-preview-btn')
                   ]
                 })
-              })
+              }, 'sound-preset-row')
             : jsxs('div', {
                 className: 'flex flex-col gap-1.5',
                 children: [
@@ -3372,7 +3370,7 @@ function AppearancePanel() {
                       title: customName || t('sound.none'),
                       children: customName || t('sound.none')
                     })
-                  }),
+                  }, 'sound-custom-name'),
                   jsx(ControlRow, {
                     label: '',
                     children: jsxs('div', {
@@ -3383,28 +3381,28 @@ function AppearancePanel() {
                           style: SOUND_BTN_STYLE,
                           onClick: () => { void pickCustomSound() },
                           role: 'button',
-                          children: [jsx(icons.FolderOpen, { className: 'size-3' }), t('sound.pick')]
-                        }),
+                          children: [jsx(icons.FolderOpen, { className: 'size-3' }, 'ico'), t('sound.pick')]
+                        }, 'sound-pick'),
                         jsx('div', {
                           className: SOUND_BTN_CLASS,
                           style: SOUND_BTN_STYLE,
                           onClick: () => { previewSound(); haptic('crisp') },
                           role: 'button',
-                          children: [jsx(icons.Play, { className: 'size-3' }), t('sound.preview')]
-                        }),
+                          children: [jsx(icons.Play, { className: 'size-3' }, 'ico'), t('sound.preview')]
+                        }, 'sound-preview'),
                         customName &&
                           jsx('div', {
                             className: SOUND_BTN_CLASS,
                             style: SOUND_BTN_STYLE,
                             onClick: clearCustomSound,
                             role: 'button',
-                            children: [jsx(icons.Trash2, { className: 'size-3' }), t('sound.clear')]
-                          })
+                            children: [jsx(icons.Trash2, { className: 'size-3' }, 'ico'), t('sound.clear')]
+                          }, 'sound-clear')
                       ]
                     })
-                  })
+                  }, 'sound-custom-actions')
                 ]
-              }),
+              }, 'sound-custom-block'),
           jsx(ControlRow, {
             label: t('sound.volume'),
             children: jsx(SegmentedControl, {
@@ -3413,7 +3411,7 @@ function AppearancePanel() {
               onChange: setSoundStep,
               className: 'w-full'
             })
-          }),
+          }, 'sound-volume'),
           jsx(ControlRow, {
             label: t('sound.takeover'),
             children: jsx(SegmentedControl, {
@@ -3425,17 +3423,17 @@ function AppearancePanel() {
               onChange: (id) => toggleTakeover(id === 'on'),
               className: 'w-full'
             })
-          }),
+          }, 'sound-takeover'),
           takeover &&
             jsx('div', {
               className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
               children: t('sound.takeoverNote')
-            }),
+            }, 'sound-takeover-note'),
           soundOn &&
             jsx('div', {
               className: 'mt-0.5 text-[0.6875rem] leading-relaxed text-(--ui-text-tertiary)',
               children: t('sound.note')
-            })
+            }, 'sound-note')
         ]
       }),
 
