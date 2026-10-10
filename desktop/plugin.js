@@ -490,6 +490,32 @@ function removePaper() {
   }
 }
 
+// ── 消息区选择修正 ───────────────────────────────────────────────────
+// styles.css 把 body 设成 user-select:none（@layer base），只在消息正文等白名单放开。
+// Chromium 的 shift+click 扩展选择要求「落点」自身可开始选择，于是落点踩在消息间隙 /
+// 消息头尾行时整次扩展被丢弃（实测：正文内、跨消息 OK；间隙 / 头行 / 尾行均不可扩展）。
+// 这里把聊天区整体放开，并把 base 的两条分工显式还回去；插件样式是 unlayered 的，
+// 按 CSS cascade layers 规则稳赢 @layer base，所以不需要 !important。
+const SELECTION_STYLE_ID = ID + '-selection-style'
+const SELECTION_CSS = [
+  "[data-slot='aui_thread-content']{user-select:text;-webkit-user-select:text}",
+  "[data-slot='aui_thread-content'] button,[data-slot='aui_thread-content'] [role='button']{user-select:none;-webkit-user-select:none}",
+  "[data-slot='aui_user-message-root'] button{user-select:text;-webkit-user-select:text}"
+].join('\n')
+
+function injectSelectionFix() {
+  if (document.getElementById(SELECTION_STYLE_ID)) return
+  const style = document.createElement('style')
+  style.id = SELECTION_STYLE_ID
+  style.textContent = SELECTION_CSS
+  document.head.appendChild(style)
+}
+
+function removeSelectionFix() {
+  const style = document.getElementById(SELECTION_STYLE_ID)
+  if (style) style.remove()
+}
+
 // ── 字体（霞鹜文楷 + legacy 仓库的字体/字号/思考块增强）──────────────────
 // 本段是两个来源的合并：
 //   ① 上游 v3：霞鹜文楷一键接管 + 「最后动作胜」仲裁（font.winner）
@@ -3258,6 +3284,8 @@ export default {
       // 消息气泡：兜插件重载场景，按官方键恢复 CSS 变量（官方 app 启动已自恢复，幂等）
       applyUserBubble((() => { try { return localStorage.getItem(USER_BUBBLE_KEY) || 0 } catch { return 0 } })())
       injectBinshaoTheme()
+      // 消息区选择修正：常驻，无开关（卸载即还原）
+      injectSelectionFix()
       // 开场标识：先与原生键对账，再按最终状态恢复注入
       // （v3.3.0：setItem 实时推送钩子已移除——官方设置页的改动重启后跟平）
       try {
@@ -3290,6 +3318,7 @@ export default {
         langObserver.disconnect()
         removePaper()
         removeFont()
+        removeSelectionFix()
         unwatchOfficialChatFont()
         resetIntroOnDispose()
         if (typeof zoomUnsubscribeNative === 'function') zoomUnsubscribeNative()

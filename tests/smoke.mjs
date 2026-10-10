@@ -42,4 +42,7 @@ if (globalThis.__events && globalThis.__events['message.complete']) {
   try { globalThis.__events['message.complete'](); console.log('message.complete handler: OK') } catch (e) { console.log('message.complete FAILED:', e.message) }
 } else console.log('message.complete handler: 未注册')
 console.log('notices after render:', JSON.stringify(notices))
+const selStyle = document.getElementById('hermes-appearance-hub-selection-style')
+console.log('selection fix injected:', !!selStyle, '| css rules:', selStyle ? selStyle.textContent.split('\n').length : 0)
 disposers.forEach((f) => { try { f() } catch (e) { console.log('dispose error:', e.message) } }); console.log('dispose: OK')
+console.log('selection fix removed:', !document.getElementById('hermes-appearance-hub-selection-style'))
