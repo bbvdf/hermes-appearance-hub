@@ -38,3 +38,20 @@ export const DropdownMenuItem = box('dmi')
 // i18n 桩：t 直接回键名，便于断言「哪些文案键被用到」
 export const usePluginI18n = () => (k) => k
 export const useI18n = () => ({ locale: 'zh', setLocale: () => {}, isSavingLocale: false })
+
+// 主题桩：官方 ThemeProvider 的 mode/themeName/availableThemes 读写面（上游 v3.4 起改走官方
+// ThemeProvider 与 THEMES_AREA 贡献区，不再直写 localStorage —— 桩要跟上，否则 ESM 导入即崩）
+export const useTheme = () => ({
+  mode: 'dark',
+  setMode: () => {},
+  themeName: 'default',
+  setTheme: () => {},
+  availableThemes: [
+    { name: 'default' }, { name: 'midnight' }, { name: 'nord' }, { name: 'solarized' },
+    { name: 'gruvbox' }, { name: 'dracula' }, { name: 'tokyo' }, { name: 'one-dark' },
+    { name: 'catppuccin' }, { name: 'everforest' }, { name: 'rose-pine' }, { name: 'binshao' }
+  ]
+})
+
+// 官方「主题贡献区」标识：插件用它把自定义主题注册进官方主题清单
+export const THEMES_AREA = 'themes'

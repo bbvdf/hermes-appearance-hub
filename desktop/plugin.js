@@ -3,7 +3,8 @@
  *
  * 用法：
  *   - 状态栏「外观」按钮 → 标准状态栏弹窗（DropdownMenu，与核心工具一致），
- *     主题/语言/字体/纸纹/缩放/标签栏/密度/聊天背景/消息气泡/窗口透明/开场标识即时生效。
+ *     主题（自动跟随官方）/语言/字体/纸纹/界面缩放/聊天文字大小/标签栏/密度/
+ *     聊天背景/消息气泡/窗口透明/开场标识即时生效。
  *   - 「界面缩放」直接驱动 Hermes 原生缩放（window.hermesDesktop.zoom.setPercent）
  *     —— 与 Settings → Appearance → 界面缩放、View 菜单同一套机制，互相实时同步。
  *   - 状态栏右键菜单可勾选显示/隐藏本入口（toggleLabel）。
@@ -13,7 +14,7 @@
  *       状态栏入口用 declarative data 通道（variant:'menu' + menuContent），
  *       不自定义 Popover —— 与核心状态栏工具同一条渲染路径，最稳。
  */
-import { haptic, host, icons, SegmentedControl, Input, Textarea, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, usePluginI18n, useI18n } from '@hermes/plugin-sdk'
+import { haptic, host, icons, SegmentedControl, Input, Textarea, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, usePluginI18n, useI18n, useTheme, THEMES_AREA } from '@hermes/plugin-sdk'
 import { useState, useEffect, useRef } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
@@ -86,6 +87,7 @@ export const LOCALES = {
       appActions: 'App Actions', appActionsDesc: 'Where Settings, Layout, and HUD sit in the titlebar. Right leaves room for tabs.', left: 'Left', right: 'Right'
     },
     zoom: { title: 'UI Scale', desc: 'Native scaling · synced with Settings/View menu' },
+    chatScale: { title: 'Chat Text Size', desc: 'Adjusts chat text and composer font size relative to UI scale. Sidebar and controls keep their size.' },
     footer: { tip: 'Hover any setting for details · Changes apply instantly' },
     notify: { ready: 'Appearance Hub ready — use the Appearance toggle in the status bar', failed: 'Appearance Hub injection failed: ' }
   },
@@ -154,6 +156,7 @@ export const LOCALES = {
       appActions: '应用操作', appActionsDesc: '设置、布局和 HUD 放在标题栏左侧还是右侧。选右侧可给标签留出左边空间。', left: '左侧', right: '右侧'
     },
     zoom: { title: '界面缩放', desc: '缩放整个应用的文字和界面，与系统设置/View 菜单同步。' },
+    chatScale: { title: '聊天文字大小', desc: '相对于界面缩放调整对话文字和消息输入框的字号。侧边栏和控件大小保持不变。' },
     footer: { tip: '悬停任一设置项查看说明 · 改动即时生效' },
     notify: { ready: '外观 Hub 已就绪 — 状态栏「外观」开关', failed: '外观 Hub 注入失败: ' }
   },
@@ -222,6 +225,7 @@ export const LOCALES = {
       appActions: '應用操作', appActionsDesc: '設定、版面與 HUD 放在標題列左側或右側。選右側可把左側留給分頁。', left: '左側', right: '右側'
     },
     zoom: { title: '介面縮放', desc: '縮放整個應用程式的文字與介面，與設定/檢視選單同步。' },
+    chatScale: { title: '聊天文字大小', desc: '相對於介面縮放調整對話文字和訊息輸入框的字級。側邊欄與控制項大小保持不變。' },
     footer: { tip: '懸停任一設定項查看說明 · 變更即時生效' },
     notify: { ready: '外觀 Hub 已就緒 — 狀態列「外觀」開關', failed: '外觀 Hub 注入失敗: ' }
   }
@@ -247,6 +251,19 @@ const ZOOM_OPTIONS = [
   { id: '125', label: '125%', percent: 125 },
   { id: '150', label: '150%', percent: 150 },
   { id: '175', label: '175%', percent: 175 }
+]
+
+// 聊天文字大小档位：与官方 CHAT_TEXT_SCALE_PRESETS 对齐（store/chat-text-scale.ts，
+// 官方默认 110%）。走 host.settings 网关的 chatTextScale 键——写即官方 setter，
+// 落盘归官方，与 Settings → Appearance → 聊天文字大小双向同步。
+// id 用字符串（SegmentedControl<T extends string> 要求），写入时转 Number。
+const CHAT_SCALE_OPTIONS = [
+  { id: '90', label: '90%' },
+  { id: '100', label: '100%' },
+  { id: '110', label: '110%' },
+  { id: '125', label: '125%' },
+  { id: '150', label: '150%' },
+  { id: '175', label: '175%' }
 ]
 
 const PAPER_LAYER_ID = ID + '-paper'
@@ -310,15 +327,100 @@ const REASONING_KEY = 'hermes.desktop.reasoning.collapsedByDefault'
 const EMBED_MODE_KEY = 'hermes.desktop.embed-mode'
 const POPOUT_KEY = 'hermes.desktop.composerPopout.gesturesEnabled'
 const APP_ACTIONS_KEY = 'hermes.desktop.titlebarAppActions'
+const CHAT_SCALE_KEY = 'hermes.desktop.chat-text-scale.v1'
+
+// ── 官方 settings 网关（host.settings）优先层 ──────────────────────
+// 官方已开门的键走网关：写即走官方 setter（persist 归官方）、subscribe 实时，
+// 与官方设置页双向同步零自建。未开门 / 旧桌面端回落下面的反解层。
+// 键名映射：网关用短名（#116338 白名单），插件内部用 localStorage 长键名。
+// 探测式：网关对未入白名单的键同步抛 Unsupported desktop setting，结果按名
+// 缓存（名单是构建期静态表，会话内不变）——官方扩名单后自动启用，零改码。
+const GATE_KEYS = {
+  [DENSITY_KEY]: 'sessionListDensity',
+  [TABSTRIP_KEY]: 'tabStripDefault',
+  [BACKDROP_KEY]: 'backdrop.v1',
+  [INTRO_NATIVE_KEY]: 'intro-splash.v1',
+  [REASONING_KEY]: 'reasoning.collapsedByDefault',
+  [POPOUT_KEY]: 'composerPopout.gesturesEnabled',
+  [CHAT_SCALE_KEY]: 'chatTextScale',
+  // 以下键在官方扩名单请求（PR #122673）中：合并后自动启用，无需改码
+  [TOOL_VIEW_KEY]: 'toolView.technical',
+  [EMBED_MODE_KEY]: 'embed-mode',
+  [APP_ACTIONS_KEY]: 'titlebarAppActions',
+  [USER_BUBBLE_KEY]: 'user-bubble-transparency.v1'
+}
+
+const _gateOk = new Map()
+
+function settingsGateway() {
+  const s = host && host.settings
+  return s && typeof s.get === 'function' && typeof s.set === 'function' ? s : null
+}
+
+// 返回网关短名（该键已开门）或 null（未开门/旧桌面端 → 走反解层）
+function gateName(key) {
+  const name = GATE_KEYS[key]
+  if (!name) return null
+  if (_gateOk.has(name)) return _gateOk.get(name) ? name : null
+  const sg = settingsGateway()
+  let ok = false
+  if (sg) {
+    try { sg.get(name); ok = true } catch { ok = false }
+  }
+  _gateOk.set(name, ok)
+  return ok ? name : null
+}
+
+// 官方键的读：已开门 → 网关（权威值，与官方设置页同一份）；否则反解 atom；
+// 反解失败回落 localStorage —— 三者读出的值相同，差别只在「有没有订阅能力」。
+function readOfficial(key, fallback) {
+  const name = gateName(key)
+  if (name) {
+    try {
+      const v = settingsGateway().get(name)
+      return v === undefined || v === null ? fallback : v
+    } catch {}
+  }
+  const v = OFFICIAL_CHANNEL.read(key, undefined)
+  if (v !== undefined) return v
+  return fallback
+}
+
+// 官方键的写：已开门 → 网关（实时 + 落盘都归官方）；否则反解 atom/setter。
+// 返回 false = 两条通道都没接住，调用方必须自己落 localStorage，否则改动会丢。
+function writeOfficial(key, value) {
+  const name = gateName(key)
+  if (name) {
+    try { settingsGateway().set(name, value); return true } catch {}
+  }
+  return OFFICIAL_CHANNEL.write(key, value)
+}
+
+// 官方键的订阅：已开门 → 网关 subscribe（官方设置页改动实时推来）；
+// 否则反解 atom 的订阅；都不可用返回 noop disposer。
+function subscribeOfficial(key, cb) {
+  const name = gateName(key)
+  if (name) {
+    try {
+      const sg = settingsGateway()
+      if (typeof sg.subscribe === 'function') return sg.subscribe(name, cb)
+    } catch {}
+  }
+  return OFFICIAL_CHANNEL.subscribe(key, cb)
+}
 
 function readBoolKey(key, fallback) {
+  const v = readOfficial(key, undefined)
+  if (typeof v === 'boolean') return v
   try {
-    const v = localStorage.getItem(key)
-    return v === 'true' ? true : v === 'false' ? false : fallback
+    const raw = localStorage.getItem(key)
+    return raw === 'true' ? true : raw === 'false' ? false : fallback
   } catch { return fallback }
 }
 
 function writeBoolKey(key, on) {
+  // atom 已认领：写它即落盘并叫醒所有订阅者，不要再直写（重复写会双触发）
+  if (writeOfficial(key, on)) return
   try {
     localStorage.setItem(key, String(on))
     window.dispatchEvent(new StorageEvent('storage', { key }))
@@ -332,6 +434,9 @@ function clampBubble(value) {
 
 function applyUserBubble(value) {
   const v = clampBubble(value)
+  // atom 已认领：官方 $userBubble 的 subscribe 自己会打 CSS 变量 + 落盘
+  // （含 v=0 时 removeProperty + 删键），写它即可，不要再叠一遍直写。
+  if (writeOfficial(USER_BUBBLE_KEY, v)) return
   try {
     if (v === 0) {
       document.documentElement.style.removeProperty('--user-bubble-keep')
@@ -946,11 +1051,31 @@ const introOriginalTexts = new Map()   // 叶子元素 → 原始文本（切回
 let introModeSubscribers = new Set()   // 面板订阅者（v3.3.0 起仅 register 初始化时推送一次对齐）
 
 function writeIntroNative(value) {
+  // 记账必须【先于】写：atom.set 会同步触发订阅回调，回调里靠这个值区分
+  // 「自己写的」与「官方页改的」。顺序反了会把自己的写误判成外部改动，
+  // 导致注入层被多余地重置一次（v3.2 当年踩过这个次序，v3.4.0 别改回去）。
+  introNativeLastWritten = value
+  // atom 已认领：走官方 $introSplash 写入 = 落盘 + 官方设置页开关实时跟平，
+  // 不再需要下面的程序化 click 去对齐（那是 atom 缺席时的兜底）。
+  if (writeOfficial(INTRO_NATIVE_KEY, value === 'true')) return
   try {
     localStorage.setItem(INTRO_NATIVE_KEY, value)
   } catch {
     // storage 不可用时静默跳过，注入层不受影响
   }
+}
+
+// 反向同步：官方设置页切开关 → 注入层跟平。订阅官方 atom（v3.4.0 新增；
+// v3.3.0 删掉了 Storage.prototype.setItem 钩子，反向要重启才对账）。
+// 记账防自激：本插件自己写 atom 也会触发回调，靠 lastWritten 区分。
+let introNativeLastWritten = null
+function watchIntroNative(onChange) {
+  return subscribeOfficial(INTRO_NATIVE_KEY, (on) => {
+    const value = on ? 'true' : 'false'
+    if (value === introNativeLastWritten) return   // 自己刚写的，账已同步
+    introNativeLastWritten = value
+    onChange(value)
+  })
 }
 
 // ── 与原生设置页双向同步 ──────────────────────────────────────────
@@ -986,8 +1111,8 @@ function unsubscribeIntroMode(cb) {
   introModeSubscribers.delete(cb)
 }
 
-// 面板实例订阅（弹窗开时加入）：v3.3.0 合规改造后无实时推送源，保留接口
-// （register 初始化时可推送一次对齐；官方设置页的改动降级为重启后跟平）
+// 面板实例订阅（弹窗开时加入）：v3.4.0 起推送源是官方 $introSplash atom 订阅，
+// 官方设置页切开关 → 这里实时推给面板（v3.3.0 那阵无推送源，降级为重启后跟平）。
 function subscribeIntroMode(cb) {
   introModeSubscribers.add(cb)
   return unsubscribeIntroMode
@@ -1151,45 +1276,16 @@ function subscribeNativeZoom(cb) {
 //   default profile 写全局键 hermes-desktop-mode-v1；命名 profile 写
 //   hermes-desktop-profile-modes-v1 record。官方监听 storage 事件
 // （APPEARANCE_KEYS），setItem 即全窗口实时生效——与 zoom 同款官方管道。
-const MODE_GLOBAL_KEY = 'hermes-desktop-mode-v1'
-const MODE_RECORD_KEY = 'hermes-desktop-profile-modes-v1'
 const THEME_MODES = [
   { id: 'light', labelKey: 'theme.modeLight' },
   { id: 'dark', labelKey: 'theme.modeDark' },
   { id: 'system', labelKey: 'theme.modeSystem' }
 ]
 
-function readThemeMode() {
-  try {
-    // 活跃 profile 键与官方 ThemeProvider 一致（hermes-desktop-active-profile-v1）；
-    // 旧键 hermes-active-profile 在官方代码中不存在，曾导致多 profile 下模式误读 default 槽
-    const profile = localStorage.getItem('hermes-desktop-active-profile-v1') || 'default'
-    if (profile !== 'default') {
-      const rec = JSON.parse(localStorage.getItem(MODE_RECORD_KEY) || '{}')
-      if (rec[profile]) return rec[profile]
-    }
-    return localStorage.getItem(MODE_GLOBAL_KEY) || 'system'
-  } catch {
-    return 'system'
-  }
-}
-
-function writeThemeMode(mode) {
-  try {
-    // 与 readThemeMode 同键，跟官方 ThemeProvider 的 Xt setter 对齐
-    const profile = localStorage.getItem('hermes-desktop-active-profile-v1') || 'default'
-    if (profile === 'default') {
-      // 同键重写也会触发原生 storage 监听（同窗口 setItem 不自动派发，手动补发）
-      localStorage.setItem(MODE_GLOBAL_KEY, mode)
-      window.dispatchEvent(new StorageEvent('storage', { key: MODE_GLOBAL_KEY }))
-    } else {
-      const rec = JSON.parse(localStorage.getItem(MODE_RECORD_KEY) || '{}')
-      rec[profile] = mode
-      localStorage.setItem(MODE_RECORD_KEY, JSON.stringify(rec))
-      window.dispatchEvent(new StorageEvent('storage', { key: MODE_RECORD_KEY }))
-    }
-  } catch {}
-}
+// 模式读写交给官方 ThemeProvider（useTheme 的 mode / setMode）：插件不再自维
+// localStorage 直写 + 手动补发 storage 事件。原 MODE_GLOBAL_KEY /
+// MODE_RECORD_KEY 那套实现随之下线——写的就是这两个键，走官方 setter 更全
+// （跨窗口广播、设置页滑块同步都由官方负责）。
 
 function resolvedDark() {
   return document.documentElement.classList.contains('dark') ||
@@ -1197,14 +1293,19 @@ function resolvedDark() {
 }
 
 // ── 移植项读写 ────────────────────────────────────────────────────
+// 枚举类官方键：atom 认领后读 atom（权威值），未认领回落 localStorage。
 function readSimpleKey(key, fallback, valid) {
+  const v = readOfficial(key, undefined)
+  if (typeof v === 'string' && valid.includes(v)) return v
   try {
-    const v = localStorage.getItem(key)
-    return v && valid.includes(v) ? v : fallback
+    const raw = localStorage.getItem(key)
+    return raw && valid.includes(raw) ? raw : fallback
   } catch { return fallback }
 }
 
 function writeSimpleKey(key, value) {
+  // atom 认领后写它即落盘 + 实时；未认领才直写（= 重启生效）
+  if (writeOfficial(key, value)) return
   try {
     localStorage.setItem(key, value)
     window.dispatchEvent(new StorageEvent('storage', { key }))
@@ -1580,6 +1681,323 @@ function writeNativeSoundMuted(on) {
   } catch {}
 }
 
+// ── 官方 atom 实时通道（静态指纹反解 · 名字无关 · 零翻转）────────────
+//
+// v3.3.0 为过官方目录规则 8 把这段删了，9 个设置项退化成「重启才生效」。
+// 现在恢复实时能力，并且不重踩 v3.2 那版的两个坑：
+//   ① v3.2 按 chunk 名正则（session-list-density-*.js）找模块。官方一次重打包
+//      把 store 并进别的 chunk，正则就永匹配不到 → 整块静默跳过、零报错。
+//      （实证：当前构建里已无此 chunk 名，v3.2 的第一道正则当场扑空。）
+//      这里改从主 bundle 的 __vite__mapDeps 拿完整 chunk 依赖表（名字无关），
+//      逐个定位「源码里含该键字面量」的 chunk。
+//   ② v3.2 用 boolean 值域翻转探测认领 atom。当前构建里一次能命中 7~17 个
+//      boolean 候选，指纹多义必错。这里改纯静态：从键字面量（chunk 内唯一）
+//      沿变量消费链反解出持有该键的 atom 及其 export 别名，运行期只做
+//      「候选里哪个真有 get/set」的最小探测，不做值域猜测。
+//
+// 已知变量形态（minify 后）与各自解法：
+//   KEY=`k`, VAR=se(KEY,`fb`,{...})      persistentAtom        直接可写
+//   KEY=`k`, VAR=t(le(KEY,!1))           atom(storedBoolean)   直接可写
+//   VAR=se(`k`,`fb`,{...})                键内联首参            直接可写
+//   KEY=`k`, BASE=ut(`n`,VAR,e=>VAR.set)  modeBound 包装        BASE 可写
+//   KEY=`k`, VAR=t(cond(KEY)?a:b),ATOM=t(派生)  派生 computed   内存态，落盘在官方 setter
+//   KEY=`k`, function S(v){A.set(v),persist(KEY,v)}            S 是唯一可写通道
+//
+// 反解失败一律不猜：读写回落到 localStorage 直写（= v3.3.0 的重启生效行为），
+// 面板照常可用、只是该行不实时。绝不为了「看起来实时」而写错 atom。
+
+const OFFICIAL_CHANNEL = (() => {
+  const ID = '[A-Za-z_$][\\w$]*'
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  // 要认领的官方持久化键。主题明暗模式/皮肤不在此列：官方 themes/context.tsx
+  // 自己注册了 storage 监听，直写 + 补发 storage 事件本来就是实时的。
+  const CLAIM_KEYS = [
+    DENSITY_KEY, TABSTRIP_KEY, TOOL_VIEW_KEY, EMBED_MODE_KEY, APP_ACTIONS_KEY,
+    USER_BUBBLE_KEY, BACKDROP_KEY, INTRO_NATIVE_KEY, REASONING_KEY, POPOUT_KEY,
+    CHAT_SCALE_KEY
+  ]
+
+  let officialStores = null      // key -> {atom} | {setter}
+  let loadPromise = null
+
+  // 花括号配平取函数真实体。不能用固定字符窗口：窗口会溢出到后面的代码里，
+  // 让不相干的函数体「看起来」含了键名 → 认领到隔壁函数（已实证）。
+  function functionBody(src, braceIdx) {
+    let depth = 0
+    for (let i = braceIdx; i < src.length; i++) {
+      if (src[i] === '{') depth++
+      else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(braceIdx + 1, i) }
+    }
+    return ''
+  }
+
+  function matchParen(src, openIdx) {
+    let depth = 0
+    for (let i = openIdx; i < src.length; i++) {
+      const c = src[i]
+      if (c === '(' || c === '[' || c === '{') depth++
+      else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) return i }
+    }
+    return -1
+  }
+
+  // 实参区间内对某标识符的引用。排除 obj.prop 形式（`$` 与 `.` 都不算边界），
+  // 否则 `Xn.poppedOut` 会被误判成引用了 `Xn` 的键。
+  function argRefs(src, needle, s, e) {
+    const hits = []
+    const re = new RegExp('(^|[^\\w$.])' + reEsc(needle) + '(?![\\w$])', 'g')
+    const seg = src.slice(s, e)
+    let m
+    while ((m = re.exec(seg))) { hits.push(s + m.index); if (hits.length > 8) break }
+    return hits
+  }
+
+  const DECL_SRC = '(?:^|[;,{(]|\\s)\\s*(' + ID + ')\\s*=\\s*(' + ID + ')\\s*\\('
+  const VARDEF_SRC = 'function\\s+(' + ID + ')\\s*\\(([^)]*)\\)\\s*\\{'
+
+  // 变量声明 VAR=CALL(...) —— 用 sticky 正则走 lastIndex，绝不 src.slice(from)：
+  // chunk 几十万字符，在扫描循环里 slice 会变成 GB 级拷贝把进程拖死（已踩过）。
+  function readVarDecl(src, from, re) {
+    re.lastIndex = from
+    const m = re.exec(src)
+    if (!m) return null
+    const openIdx = m.index + m[0].length - 1
+    const closeIdx = matchParen(src, openIdx)
+    if (closeIdx < 0) return null
+    return { varName: m[1], argsStart: openIdx + 1, argsEnd: closeIdx }
+  }
+
+  function exportMap(src) {
+    const m = /export\s*\{/.exec(src)
+    if (!m) return {}
+    const j = src.indexOf('{', m.index)
+    const k = src.indexOf('}', j)
+    if (k < 0) return {}
+    const nm = {}
+    for (const pair of src.slice(j + 1, k).split(',')) {
+      const pr = pair.trim().split(/\s+/)
+      if (pr.length === 1) nm[pr[0]] = pr[0]
+      else if (pr.length === 3 && pr[1] === 'as') nm[pr[0]] = pr[2]
+    }
+    return nm
+  }
+
+  // 从键字面量位置反解候选 export 名。
+  // persists = 候选自身是否直接持有该键的持久化通道（写它即落盘）：
+  //   直接（persistentAtom / atom(storedBoolean) / modeBound 包装）→ true
+  //   派生（VAR=atom(派生变量)）→ false，落盘在官方 setter 里
+  //   setter-fn（函数体同含 .set( 与 persist(KEY)）→ true
+  function resolveFrom(src, at, key) {
+    const nm = exportMap(src)
+    const emitted = []
+    const seen = new Set()
+    const push = (varName, why, persists) => {
+      const ex = nm[varName]
+      if (!ex || seen.has(ex)) return
+      seen.add(ex)
+      emitted.push({ exportName: ex, via: why, persists: persists !== false })
+    }
+    const DECL_RE = new RegExp(DECL_SRC, 'g')
+    const VARDEF_RE = new RegExp(VARDEF_SRC, 'g')
+
+    // 情况 1：键先被赋给具名变量 KEYVAR（`var On=`k``）
+    const before = src.slice(Math.max(0, at - 90), at)
+    const keyvarM = new RegExp('(' + ID + ')\\s*=\\s*`\\s*$').exec(before)
+    const keyvar0 = keyvarM ? keyvarM[1] : null
+
+    if (keyvar0) {
+      const winEnd = Math.min(src.length, at + 6000)
+      let keyvar = keyvar0
+      const visited = new Set()
+      for (let hop = 0; hop < 3 && !visited.has(keyvar); hop++) {
+        visited.add(keyvar)
+        // 收集窗口内所有「实参引用了 keyvar」的声明。不能只取第一个：popout 键
+        // 的源码里 `Xn=t({…poppedOut:Yn&&…})` 排在真正的 atom `Zn=t(Yn)` 之前，
+        // 只取首个会认领到错的那个（已实证）。
+        const consumers = []
+        DECL_RE.lastIndex = at
+        let dm
+        while ((dm = DECL_RE.exec(src))) {
+          if (dm.index > winEnd) break
+          const d = readVarDecl(src, dm.index, DECL_RE)
+          if (!d || d.argsEnd > winEnd) continue
+          if (argRefs(src, keyvar, d.argsStart, d.argsEnd).length) consumers.push(d)
+          if (consumers.length >= 8) break
+        }
+        if (!consumers.length) break
+
+        const nexts = []
+        for (const c of consumers) {
+          // 实参直接引用【原始键变量】= 持有持久化通道；只引用派生变量 = 内存态
+          const direct = argRefs(src, keyvar0, c.argsStart, c.argsEnd).length > 0
+          push(c.varName, direct ? 'keyvar' : 'derived', direct)
+          const after = src.slice(c.argsEnd, Math.min(src.length, c.argsEnd + 4000))
+          // modeBound 包装 BASE=ut(`name`,VAR,e=>VAR.set(e))：BASE 才是可写的
+          const wrapped = new RegExp('(?:^|[;,{(]|\\s)\\s*(' + ID + ')\\s*=\\s*' + ID + '\\s*\\((?=[^)]*' + reEsc(c.varName) + '\\s*\\.set\\()').exec(after)
+          if (wrapped) push(wrapped[1], 'modeBound', true)
+          // 只读 computed：args 内无 .set( 时找持有 VAR.set 的包装层
+          if (!src.slice(c.argsStart, c.argsEnd).includes('.set(')) {
+            const setter = new RegExp('(' + ID + ')\\s*=\\s*' + ID + '\\s*\\([^)]*' + reEsc(c.varName) + '\\s*\\.set\\(').exec(after)
+            if (setter) push(setter[1], 'setter-wrapper', true)
+          }
+          nexts.push(c.varName)
+        }
+
+        // 官方 setter：function S(v){ATOM.set(v),persist(KEY,v),…}
+        // 硬条件=函数体【自身】同时含 .set( 与原始键变量。条件写松会认领到隔壁
+        // 的同类 setter（popout 的 $n 管的是 poppedOut，不是 gestures；已实证认错）。
+        let fm
+        VARDEF_RE.lastIndex = at
+        while ((fm = VARDEF_RE.exec(src))) {
+          if (fm.index > winEnd) break
+          const body = functionBody(src, fm.index + fm[0].length - 1)
+          if (!body) break
+          if (!body.includes('.set(')) continue
+          if (!new RegExp('(^|[^\\w$.])' + reEsc(keyvar0) + '(?![\\w$])').test(body)) continue
+          push(fm[1], 'setter-fn', true)
+          break
+        }
+
+        // 下一跳跟进任一未访问过的消费者。不能只跟非首个：popout 键的首个消费者
+        // Yn=le(Ln,…) 是派生读取，真正的 atom Zn=t(Yn) 在它下游（已实证断链）。
+        keyvar = nexts.find((v) => !visited.has(v)) || null
+        if (!keyvar) break
+      }
+    }
+
+    // 情况 2：键内联在调用首参 / 嵌在实参里
+    if (!emitted.length) {
+      const winStart = Math.max(0, at - 120)
+      const win = src.slice(winStart, at + 4000)
+      const direct = new RegExp('(?:^|[;,{(]|\\s)\\s*(' + ID + ')\\s*=\\s*' + ID + '\\s*\\(\\s*`' + reEsc(key) + '`').exec(win)
+      if (direct) push(direct[1], 'literal-arg', true)
+      else {
+        const re2 = new RegExp(DECL_SRC, 'g')
+        let nd, nested = null
+        while ((nd = re2.exec(win))) {
+          const d = readVarDecl(win, nd.index, re2)
+          if (d && win.slice(d.argsStart, d.argsEnd).includes(key)) { nested = d; break }
+        }
+        if (nested) push(nested.varName, 'literal-nested', true)
+      }
+    }
+    return emitted
+  }
+
+  // chunk 清单 = 主 bundle 的 __vite__mapDeps（完整依赖表，名字无关）
+  async function assetsBase() {
+    try {
+      const scriptEl = document.querySelector('script[src*="index-"]')
+      if (!scriptEl) return null
+      const mainUrl = new URL(scriptEl.src, location.href)
+      const mainSrc = await (await fetch(mainUrl.href)).text()
+      const i = mainSrc.indexOf('__vite__mapDeps')
+      if (i < 0) return null
+      const j = mainSrc.indexOf('[', i)
+      let depth = 0, end = -1
+      for (let k = j; k < mainSrc.length; k++) {
+        if (mainSrc[k] === '[') depth++
+        else if (mainSrc[k] === ']') { depth--; if (depth === 0) { end = k + 1; break } }
+      }
+      if (end < 0) return null
+      return { list: JSON.parse(mainSrc.slice(j, end)).map((s) => s.replace(/^\.\//, '')), base: new URL('./', mainUrl).href }
+    } catch { return null }
+  }
+
+  async function load() {
+    officialStores = officialStores || {}
+    const env = await assetsBase()
+    if (!env) return officialStores
+    const srcCache = new Map()
+    const readChunk = async (name) => {
+      if (!srcCache.has(name)) {
+        try { srcCache.set(name, await (await fetch(env.base + name)).text()) }
+        catch { srcCache.set(name, null) }
+      }
+      return srcCache.get(name)
+    }
+
+    for (const key of CLAIM_KEYS) {
+      if (officialStores[key]) continue
+      let hit = null
+      for (const name of env.list) {
+        const s = await readChunk(name)
+        if (s && s.includes(key)) { hit = { name, src: s }; break }
+      }
+      if (!hit) { console.error('[appearance-hub] claim fail (no chunk): ' + key); continue }
+      // 键字面量在 chunk 内必须唯一，否则无从判断哪个是它的 atom
+      if ([...hit.src.matchAll(new RegExp(reEsc(key), 'g'))].length !== 1) {
+        console.error('[appearance-hub] claim fail (key not unique): ' + key); continue
+      }
+      const at = hit.src.indexOf(key)
+      const cands = resolveFrom(hit.src, at, key)
+      if (!cands.length) { console.error('[appearance-hub] claim fail (no consumer): ' + key); continue }
+      cands.sort((a, b) => (b.persists ? 1 : 0) - (a.persists ? 1 : 0))
+
+      let mod = null
+      try { mod = await import(/* @vite-ignore */ env.base + hit.name) } catch (e) {
+        console.error('[appearance-hub] claim fail (import): ' + key + ' ' + e.message); continue
+      }
+      // 择优顺序（顺序本身就是语义，别随手调）：
+      //   ① 持持久化通道的 atom  ← 写它即落盘 + 叫醒订阅
+      //   ② 官方 setter 函数        ← atom 未导出时的唯一落盘通道
+      //   ③ 任意可写 atom          ← 兜底：可能只改内存态
+      // ② 必须排在 ③ 之前：popout 的 gestures atom 未导出，候选里有个同 chunk
+      // 的浮窗状态 atom（derived）也能 get/set，先挑它就变成「界面动了但
+      // 重启丢」（已实证）。setter-fn 候选恒带 persists=true，不参与 ③。
+      const pick = (pred) => { for (const c of cands) { const v = mod[c.exportName]; if (pred(v, c)) return { c, v } } return null }
+      let got = pick((v, c) => c.persists && v && typeof v.get === 'function' && typeof v.set === 'function')
+        || pick((v, c) => c.via === 'setter-fn' && typeof v === 'function')
+        || pick((v) => v && typeof v.get === 'function' && typeof v.set === 'function')
+        || pick((v) => typeof v === 'function')
+      if (!got) { console.error('[appearance-hub] claim fail (no usable export): ' + key); continue }
+      // setter-fn 走函数通道，其余走 atom 通道
+      officialStores[key] = got.c.via === 'setter-fn' ? { setter: got.v } : { atom: got.v }
+      // 探针必须 error 级：renderer 只有 error 落盘，info/warn 事后 grep 不到
+      console.error('[appearance-hub] ✅ ' + key + ' ← ' + hit.name + ' via ' + got.c.via +
+        ' export=' + got.c.exportName)
+    }
+    return officialStores
+  }
+
+  function ensure() {
+    if (!loadPromise) loadPromise = load().catch((e) => {
+      console.error('[appearance-hub] atom load failed: ' + e.message)
+      return officialStores
+    })
+    return loadPromise
+  }
+
+  const api = {
+    ensure,
+    // 读：认领到 atom 就走 atom（权威值），否则回落调用方的 localStorage 读
+    read(key, fallback) {
+      const s = officialStores && officialStores[key]
+      if (s && s.atom) { try { const v = s.atom.get(); if (v !== undefined && v !== null) return v } catch {} }
+      return fallback
+    },
+    // 写：atom / 官方 setter 优先（落盘与界面刷新都归官方）；都没有则返回 false，
+    // 由调用方落回 localStorage 直写（= 重启生效，不实时但正确）
+    write(key, value) {
+      const s = officialStores && officialStores[key]
+      if (s && s.atom) { try { s.atom.set(value); return true } catch {} }
+      if (s && s.setter) { try { s.setter(value); return true } catch {} }
+      return false
+    },
+    // 订阅：面板高亮跟随官方设置页的改动。setter 路线无 atom 可订阅 → noop
+    subscribe(key, cb) {
+      const s = officialStores && officialStores[key]
+      if (s && s.atom && typeof s.atom.subscribe === 'function') {
+        try { return s.atom.subscribe(cb) } catch {}
+      }
+      return () => {}
+    },
+    has(key) { return !!(officialStores && officialStores[key]) }
+  }
+  return api
+})()
+
 let customBuffer = null
 let customLoadedPath = null
 let customPeak = 1
@@ -1709,10 +2127,13 @@ function playCue(variantId, step) {
 // SDK 提供设置项读写/订阅网关（catalog PR #114155 讨论中），此处即回迁点。
 
 function readBackdrop() {
+  const v = OFFICIAL_CHANNEL.read(BACKDROP_KEY, undefined)
+  if (typeof v === 'boolean') return v
   try { return localStorage.getItem(BACKDROP_KEY) === 'true' } catch { return false }
 }
 
 function writeBackdrop(on) {
+  if (writeOfficial(BACKDROP_KEY, on)) return
   try {
     localStorage.setItem(BACKDROP_KEY, String(on))
     window.dispatchEvent(new StorageEvent('storage', { key: BACKDROP_KEY }))
@@ -1780,13 +2201,16 @@ function pushTranslucencyIpc(book, dark) {
 
 
 // ── 主题（皮肤）───────────────────────────────────────────────────
-// 与模式同款官方管道：skin 存 hermes-desktop-theme-v2（default）/ profile-themes record，
-// 官方 storage 监听实时生效。列表 = 原生 BUILTIN_THEME_LIST（presets.ts）。
-// ── Binshao 用户主题（Obsidian Primary 移植）──────────────────────
-// 种子值由混合链反解生成（solve-seeds.mjs，正向验证 0 偏差）：官方 skin 消费端
-// getBaseColors 走 resolveTheme → user themes 在解析链内，写 user-themes key 即生效。
-// register 幂等注入 + 热更新：每次 register 重写（localStorage 被清自愈）。
-const USER_THEME_KEY = 'hermes-desktop-user-themes-v1'
+// 模式/皮肤/清单全部交给官方 ThemeProvider（useTheme）：mode/setMode 切明暗，
+// themeName/setTheme 切皮肤，availableThemes = 官方内置 + 用户安装 + 贡献主题。
+// 本插件不再自维 localStorage 直写与 storage 监听（那是 v3.4.0 及以前的路径）。
+// ── Binshao 主题（Obsidian Primary 移植）──────────────────────────
+// 种子值由混合链反解生成（solve-seeds.mjs，正向验证 0 偏差）。
+// 交付走官方 THEMES_AREA 贡献（v4 同款）：data 即 DesktopTheme 本体，官方
+// listAllThemes() 把 contributedThemes() 并进 availableThemes —— 注册即进面板
+// 网格，卸载时随插件 retire。取代 v3.x 直写 hermes-desktop-user-themes-v1 安装位：
+// 那条路写的是 localStorage，而官方 $userThemes atom 只在模块初始化时读一次，
+// 插件 register 时写进去的值本会话看不到（要重启才进列表）。
 const BINSHAO_PATCH_ID = 'hub-binshao-patch'
 const USER_THEMES = 
 {
@@ -1910,13 +2334,9 @@ const BINSHAO_PATCH_CSS = `[data-hermes-theme="binshao"] {
 }
 `
 
-function injectBinshaoTheme() {
-  try {
-    const raw = localStorage.getItem(USER_THEME_KEY)
-    const record = raw ? JSON.parse(raw) : {}
-    Object.assign(record, USER_THEMES)
-    localStorage.setItem(USER_THEME_KEY, JSON.stringify(record))
-  } catch {}
+// 层2 补丁（官方主题色覆盖不到的变量）仍走 style 注入；主题本体走上面的
+// THEMES_AREA 贡献。
+function injectBinshaoPatchCss() {
   document.getElementById(BINSHAO_PATCH_ID)?.remove()
   const style = document.createElement('style')
   style.id = BINSHAO_PATCH_ID
@@ -1924,49 +2344,23 @@ function injectBinshaoTheme() {
   document.head.appendChild(style)
 }
 
-const SKIN_GLOBAL_KEY = 'hermes-desktop-theme-v2'
-const SKIN_RECORD_KEY = 'hermes-desktop-profile-themes-v1'
-const THEMES = [
-  { id: 'nous', label: 'Nous' },
-  { id: 'nous-alt', label: 'Nous Alt' },
-  { id: 'github', label: 'GitHub' },
-  { id: 'catppuccin', label: 'Catppuccin' },
-  { id: 'everforest', label: 'Everforest' },
-  { id: 'solarized', label: 'Solarized' },
-  { id: 'midnight', label: 'Midnight' },
-  { id: 'ember', label: 'Ember' },
-  { id: 'mono', label: 'Mono' },
-  { id: 'cyberpunk', label: 'Cyberpunk' },
-  { id: 'slate', label: 'Slate' },
-  { id: 'binshao', label: 'Binshao' }
-]
+const BINSHAO_THEME = USER_THEMES.binshao
 
-function readThemeSkin() {
-  try {
-    const profile = localStorage.getItem('hermes-desktop-active-profile-v1') || 'default'
-    if (profile !== 'default') {
-      const rec = JSON.parse(localStorage.getItem(SKIN_RECORD_KEY) || '{}')
-      if (rec[profile]) return rec[profile]
-    }
-    return localStorage.getItem(SKIN_GLOBAL_KEY) || 'nous'
-  } catch {
-    return 'nous'
-  }
-}
-
-function writeThemeSkin(skin) {
-  try {
-    const profile = localStorage.getItem('hermes-desktop-active-profile-v1') || 'default'
-    if (profile === 'default') {
-      localStorage.setItem(SKIN_GLOBAL_KEY, skin)
-      window.dispatchEvent(new StorageEvent('storage', { key: SKIN_GLOBAL_KEY }))
-    } else {
-      const rec = JSON.parse(localStorage.getItem(SKIN_RECORD_KEY) || '{}')
-      rec[profile] = skin
-      localStorage.setItem(SKIN_RECORD_KEY, JSON.stringify(rec))
-      window.dispatchEvent(new StorageEvent('storage', { key: SKIN_RECORD_KEY }))
-    }
-  } catch {}
+// 皮肤清单/读写全部交给官方 ThemeProvider（useTheme 的 availableThemes /
+// themeName / setTheme）：清单 = 官方内置 + 用户安装 + THEMES_AREA 贡献，
+// 官方的 classic 等主题自动在列，Binshao（下方注入的 user theme）同样在列。
+// 官方 availableThemes 的内置序与 hub 旧网格序不同（nous-alt 位置、slate/
+// cyberpunk 互换），这里保序：官方内置 11 项按老网格序排前，其余（官方后加的内置项、
+// 用户安装、其他贡献）按官方序缀后。**Binshao 是本插件自带主题，恒排最后**——用户
+// 拍板，不让它跟着官方清单顺序漂到中间（官方新增主题一律排在它前面）。
+const THEME_ORDER = ['nous', 'nous-alt', 'github', 'catppuccin', 'everforest',
+  'solarized', 'midnight', 'ember', 'mono', 'cyberpunk', 'slate']
+const themeRank = (n) => { const i = THEME_ORDER.indexOf(n); return i < 0 ? Infinity : i }
+const sortedThemes = (list) => {
+  const arr = [...(list || [])]
+  const own = arr.filter((t) => t.name === 'binshao')
+  const rest = arr.filter((t) => t.name !== 'binshao').sort((a, b) => themeRank(a.name) - themeRank(b.name))
+  return [...rest, ...own]
 }
 
 // ── 面板 ──────────────────────────────────────────────────────────
@@ -1988,11 +2382,14 @@ function AppearancePanel() {
     const v = ctxRef.storage.get(LIGHT_RECIPE_KEY, 'light')
     return LIGHT_RECIPES[v] ? v : 'light'
   })
-  const [themeMode, setThemeModeState] = useState(() => readThemeMode())
+  // 主题模式/皮肤直读官方 ThemeProvider（useTheme 即官方 context）：清单 =
+  // 官方内置 + 用户安装 + THEMES_AREA 贡献（含 Binshao）自动在列；切换走官方
+  // setter；跨窗口/设置页改动由官方自己的 storage 订阅驱动重渲染，不再自维监听。
+  const { mode: themeMode, setMode: setNativeMode, themeName: theme, setTheme: setNativeTheme, availableThemes } = useTheme()
   const [density, setDensityState] = useState(() =>
     readSimpleKey(DENSITY_KEY, 'compact', ['compact', 'comfortable', 'detailed']))
   const [bubble, setBubbleState] = useState(() => {
-    try { return clampBubble(localStorage.getItem(USER_BUBBLE_KEY) || 0) } catch { return 0 }
+    return clampBubble(readOfficial(USER_BUBBLE_KEY, (() => { try { return localStorage.getItem(USER_BUBBLE_KEY) || 0 } catch { return 0 } })()))
   })
   const changeBubble = (v) => {
     setBubbleState(v)
@@ -2236,6 +2633,7 @@ function AppearancePanel() {
   }
 
   const [zoom, setZoomState] = useState(() => '90')
+  const [chatScale, setChatScaleState] = useState(() => String(readOfficial(CHAT_SCALE_KEY, 110)))
   const [introOn, setIntroOn] = useState(() => {
     try { return localStorage.getItem(INTRO_NATIVE_KEY) !== 'false' } catch { return true }
   })
@@ -2274,6 +2672,13 @@ function AppearancePanel() {
     return typeof off === 'function' ? off : undefined
   }, [])
 
+  // 聊天文字大小订阅：官方设置页改档位 → 浮窗高亮即时跟平。
+  // 已开门走网关 subscribe；未开门回落反解 atom 订阅；都不可用则 noop。
+  useEffect(() => {
+    const off = subscribeOfficial(CHAT_SCALE_KEY, (v) => setChatScaleState(String(v)))
+    return typeof off === 'function' ? off : undefined
+  }, [])
+
   // 开场标识档位订阅：设置页切开关时，浮窗高亮即时跟平（推送模型，与 zoom 同款）
   useEffect(() => {
     const off = subscribeIntroMode((mode) => {
@@ -2287,19 +2692,9 @@ function AppearancePanel() {
     return typeof off === 'function' ? off : undefined
   }, [])
 
-  // 主题/模式跟随：别处（设置页/另一窗口）改外观时，本窗口原生 storage 监听已处理
-  // 界面重绘；这里只需让弹窗高亮跟上——监听同一组键。
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === MODE_GLOBAL_KEY || e.key === MODE_RECORD_KEY ||
-          e.key === SKIN_GLOBAL_KEY || e.key === SKIN_RECORD_KEY) {
-        setThemeModeState(readThemeMode())
-        setThemeState(readThemeSkin())
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+  // 主题/模式跟随已交给官方 ThemeProvider：useTheme 的 mode/themeName 就是官方
+  // context 的响应式值，别处（设置页/另一窗口）改动由官方订阅驱动重渲染，
+  // 这里不再需要自维 storage 监听。
 
   const togglePaper = (next) => {
     setPaper(next)
@@ -2310,8 +2705,7 @@ function AppearancePanel() {
   }
 
   const setThemeMode = (mode) => {
-    setThemeModeState(mode)
-    writeThemeMode(mode)
+    setNativeMode(mode)
     haptic('tap')
   }
 
@@ -2329,10 +2723,8 @@ function AppearancePanel() {
     haptic('tap')
   }
 
-  const [theme, setThemeState] = useState(() => readThemeSkin())
   const setTheme = (id) => {
-    setThemeState(id)
-    writeThemeSkin(id)
+    setNativeTheme(id)
     haptic('tap')
   }
 
@@ -2426,6 +2818,13 @@ function AppearancePanel() {
   const setZoom = (id) => {
     setZoomState(id)
     setNativeZoom(Number(id))
+    haptic('tap')
+  }
+
+  const setChatScale = (id) => {
+    setChatScaleState(id)
+    // 网关要求 exact preset number（isChatTextScale 校验），字符串 id 转数字
+    writeOfficial(CHAT_SCALE_KEY, Number(id))
     haptic('tap')
   }
 
@@ -2524,20 +2923,20 @@ function AppearancePanel() {
             'div',
             {
               style: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '4px', padding: '0' },
-              children: THEMES.map((t) =>
+              children: sortedThemes(availableThemes).map((th) =>
                 jsx(
                   'button',
                   {
                     type: 'button',
-                    onClick: () => setTheme(t.id),
+                    onClick: () => setTheme(th.name),
                     className:
                       'rounded-md border px-1.5 py-1 text-[0.625rem] transition-colors ' +
-                      (t.id === theme
+                      (th.name === theme
                         ? 'border-(--ui-accent) bg-(--ui-control-active-background) font-medium text-(--ui-text-primary)'
                         : 'border-(--ui-stroke-secondary) text-(--ui-text-secondary) hover:bg-(--chrome-action-hover)'),
-                    children: t.label
+                    children: th.label
                   },
-                  t.id
+                  th.name
                 )
               )
             }
@@ -3199,36 +3598,69 @@ function AppearancePanel() {
         ]
       }),
 
-      // 底部说明带：左=悬停联动（空载显示占位 tip），右=界面缩放（悬停缩放条也联动）
+      // 缩放区块（通栏）：界面缩放 + 聊天文字大小，两行相邻。
+      // 必须通栏：6 档分段控件布局实宽 ~320px，塞进双栏单列（~312px）会把标题
+      // 压成竖排——scale-90 只是 CSS transform，不改变布局宽度。
+      // 两行各自是**独立行**：整行 hover 高亮 + 整行 hover 联动说明带（与面板其他行
+      // BehaviorRow 同款）——外层只做纵向布局，悬停一行只亮那一行、只换那一条说明。
       jsxs('div', {
-        className: 'mt-1 flex items-center gap-2 border-t border-(--ui-stroke-secondary) px-2 pt-2',
+        className: 'mt-1 flex flex-col',
         children: [
-          jsx('div', {
-            // 钉两行高：hover 换长/短文案时下方不跳；空载与联动同一容器
-            style: { minHeight: '2.5rem', lineHeight: 1.25, display: 'flex', alignItems: 'center' },
-            className: 'min-w-0 flex-1 text-[0.625rem] leading-tight text-(--ui-text-quaternary)',
-            children: t(hovered || 'footer.tip')
-          }),
-          jsx('div', {
-            // onMouseEnter 包外层 div——SDK 组件不保证透传未知 props 到 DOM
-            style: { flexShrink: 0 },
+          jsxs('div', {
             onMouseEnter: () => hover('zoom.desc'),
-            children: jsx(SegmentedControl, {
-              options: ZOOM_OPTIONS,
-              value: zoom,
-              onChange: setZoom,
-              className: 'scale-90',
-              'aria-label': t('zoom.title')
-            })
+            className: 'flex items-center gap-2.5 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
+            children: [
+              jsx('div', { className: 'min-w-0 flex-1 text-[0.75rem] leading-tight', children: t('zoom.title') }),
+              // onMouseEnter 已上提到整行；这层 div 只承担 flexShrink（SDK 组件不透传未知 props）
+              jsx('div', {
+                style: { flexShrink: 0 },
+                children: jsx(SegmentedControl, {
+                  options: ZOOM_OPTIONS,
+                  value: zoom,
+                  onChange: setZoom,
+                  className: 'scale-90',
+                  'aria-label': t('zoom.title')
+                })
+              })
+            ]
+          }),
+          jsxs('div', {
+            onMouseEnter: () => hover('chatScale.desc'),
+            className: 'flex items-center gap-2.5 rounded-md px-2 py-2 hover:bg-(--chrome-action-hover)',
+            children: [
+              jsx('div', { className: 'min-w-0 flex-1 text-[0.75rem] leading-tight', children: t('chatScale.title') }),
+              jsx('div', {
+                style: { flexShrink: 0 },
+                children: jsx(SegmentedControl, {
+                  options: CHAT_SCALE_OPTIONS,
+                  value: chatScale,
+                  onChange: setChatScale,
+                  className: 'scale-90',
+                  'aria-label': t('chatScale.title')
+                })
+              })
+            ]
           })
         ]
+      }),
+
+      // 底部说明带：悬停联动（空载显示占位 tip）
+      jsx('div', {
+        className: 'mt-1 flex items-center gap-2 border-t border-(--ui-stroke-secondary) px-2 pt-2',
+        children: jsx('div', {
+          // 钉两行高：hover 换长/短文案时下方不跳；空载与联动同一容器
+          style: { minHeight: '2.5rem', lineHeight: 1.25, display: 'flex', alignItems: 'center' },
+          className: 'min-w-0 flex-1 text-[0.625rem] leading-tight text-(--ui-text-quaternary)',
+          children: t(hovered || 'footer.tip')
+        })
       })
     ]
   // 区块索引：0=标题 1=主题 2=字体 3=纸纹 4=标签栏 5=密度 6=消息气泡 7=聊天背景 8=窗口透明
-  //          9=开场标识 10-14=行为五件套（工具/推理/内嵌/悬浮框/应用操作） 15=完成提示音 16=底部提示+缩放
+  //          9=开场标识 10-14=行为五件套（工具/推理/内嵌/悬浮框/应用操作）
+  //          15=完成提示音（本 fork 移植自 legacy） 16=缩放（界面缩放+聊天文字大小） 17=底部提示
   const [secTitle, secTheme, secFont, secPaper, secTabStrip, secDensity, secBubble, secBackdrop,
          secTranslucency, secIntro, secToolView, secReasoning, secEmbeds, secPopout,
-         secAppActions, secSound, secFooter] = secChildren
+         secAppActions, secSound, secScale, secFooter] = secChildren
 
   // 双栏（唯一布局）：标题通栏 + 左右两列 + 底部提示
   return jsxs('div', {
@@ -3246,7 +3678,7 @@ function AppearancePanel() {
             children: [secTheme, secBackdrop, secPopout, secReasoning, secAppActions,
                       secToolView, secEmbeds, secTabStrip, secDensity, secSound]
           }),
-          // 右列：消息气泡 → 窗口透明 → 霞鹜文楷 → 纸纹模拟 → 开场标识（pl 内联，与左列对称）
+          // 右列：消息气泡 → 窗口透明 → 霞鹜文楷 → 纸纹模拟 → 开场标识 → 缩放（pl 内联，与左列对称）
           jsxs('div', {
             className: 'flex min-w-0 flex-1 flex-col border-l border-(--ui-stroke-secondary)',
             style: { paddingLeft: '12px' },
@@ -3254,6 +3686,7 @@ function AppearancePanel() {
           })
         ]
       }),
+      secScale,
       secFooter
     ]
   })
@@ -3263,10 +3696,21 @@ function AppearancePanel() {
 export default {
   id: ID,
   name: 'Hermes Appearance Hub',
-  description: '外观整合浮窗：双栏面板 · 悬停即见简介 · 12 主题/纸纹模拟/霞鹜文楷/窗口透明/开场标识/对话行为，状态栏一键设置。',
+  description: '外观整合浮窗：双栏面板 · 悬停即见简介 · 主题（自动跟随官方）/界面缩放与聊天文字大小/纸纹模拟/霞鹜文楷/窗口透明/开场标识/对话行为，状态栏一键设置。',
   register(ctx) {
     try {
       ctxRef = ctx
+
+      // 官方 settings 网关优先：density/tabStrip/backdrop/introSplash/reasoning/
+      // popout/chatScale 这 7 键官方已开门（host.settings 白名单），读写与订阅
+      // 全走网关，与官方设置页双向同步。其余键（toolView/embedMode/appActions/
+      // bubble）官方未开门，走下面的反解通道。
+      // 反解通道（OFFICIAL_CHANNEL.ensure）：认领这 11 个键的官方 atom —— 网关
+      // 缺席（旧桌面端）时的兜底。认领成功 = 面板改动即时生效且与官方设置页双向
+      // 同步；失败（桌面端结构变了）= 各读写函数自动回落 localStorage 直写，行为
+      // 退回 v3.3.0 的重启生效，不会报错也不会写错 atom。探针是 console.error 级，
+      // 可事后 grep 核对。
+      OFFICIAL_CHANNEL.ensure()
 
       // 插件级 i18n：注册 locale bundles，跟随 app 语言设置；卸载时随 disposer 摘除
       const disposeI18n = ctx.i18n.register(LOCALES)
@@ -3282,12 +3726,14 @@ export default {
       // 官方聊天字体编辑监听常驻：开关开着时官方 inline 变化 → applyFont 让位/恢复
       watchOfficialChatFont()
       // 消息气泡：兜插件重载场景，按官方键恢复 CSS 变量（官方 app 启动已自恢复，幂等）
-      applyUserBubble((() => { try { return localStorage.getItem(USER_BUBBLE_KEY) || 0 } catch { return 0 } })())
-      injectBinshaoTheme()
-      // 消息区选择修正：常驻，无开关（卸载即还原）
+      applyUserBubble(clampBubble(readOfficial(USER_BUBBLE_KEY, (() => { try { return localStorage.getItem(USER_BUBBLE_KEY) || 0 } catch { return 0 } })())))
+      // Binshao 主题走官方 THEMES_AREA 贡献（进 availableThemes，随卸载 retire）；
+      // 层2 补丁 CSS 单独注入。
+      ctx.register({ id: 'theme-binshao', area: THEMES_AREA, data: BINSHAO_THEME })
+      injectBinshaoPatchCss()
+      // 消息区选择修正：常驻，无开关（卸载即还原）—— 本 fork 自建
       injectSelectionFix()
       // 开场标识：先与原生键对账，再按最终状态恢复注入
-      // （v3.3.0：setItem 实时推送钩子已移除——官方设置页的改动重启后跟平）
       try {
         // 'off' 不作为持久档位（开/关由原生键承载）：历史遗留的 off 存档还原为
         // native，native/custom 存档必须保留——否则 hub 关闭后重启，「开」无从恢复原档位
@@ -3295,14 +3741,30 @@ export default {
           ctx.storage.set(INTRO_MODE_KEY, 'native')
         }
       } catch {}
+      const introInitialOn = readOfficial(INTRO_NATIVE_KEY, (() => { try { return localStorage.getItem(INTRO_NATIVE_KEY) !== 'false' } catch { return true } })())
+      introNativeLastWritten = introInitialOn ? 'true' : 'false'
       applyIntroMode(
         (() => {
-          try {
-            if (localStorage.getItem(INTRO_NATIVE_KEY) === 'false') return 'off'
-          } catch {}
+          if (!introInitialOn) return 'off'
           return ctx.storage.get(INTRO_MODE_KEY, 'native') === 'custom' ? 'custom' : 'native'
         })()
       )
+      // 反向同步常驻：官方设置页切「开场标识」开关 → 注入层实时跟平
+      // （v3.3.0 删掉 setItem 钩子后这条要重启才对账，v3.4.0 改订阅官方 atom）。
+      // 语义：false = 暂时隐藏注入层；true = 按 hub 当前档位恢复。
+      const unwatchIntro = watchIntroNative((value) => {
+        if (value === 'false') {
+          stopIntroObserver()
+          introRestore()
+          const style = document.getElementById(INTRO_STYLE_ID)
+          if (style) style.remove()
+        } else {
+          applyIntroMode(ctxRef ? String(ctxRef.storage.get(INTRO_MODE_KEY, 'native')) : 'native')
+        }
+        // 推给面板：官方页切关 → 面板跟平到「关」；切开 → 跟平到存档档位
+        const current = ctxRef ? String(ctxRef.storage.get(INTRO_MODE_KEY, 'native')) : 'native'
+        introModeSubscribers.forEach((cb) => cb(value === 'false' ? 'off' : current))
+      })
       // 界面缩放走原生机制（window.hermesDesktop.zoom）。
       // 挂模块级常驻监听：与弹窗开关无关，保证 Settings / View 菜单 / Cmd± 改缩放时
       // 反向同步（哪怕 hub 弹窗此刻没开，下次打开也已是最新值）。
@@ -3315,6 +3777,7 @@ export default {
 
       // 卸载/重载时清理注入，不留残留
       ctx.onDispose(() => {
+        if (typeof unwatchIntro === 'function') unwatchIntro()
         langObserver.disconnect()
         removePaper()
         removeFont()
